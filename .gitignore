@@ -3,3 +3,5 @@ tuts/tuts.xcodeproj/xcuserdata/Kathryn.xcuserdatad/xcschemes/tuts.xcscheme
 tuts/tuts.xcodeproj/xcuserdata/Kathryn.xcuserdatad/xcschemes/xcschememanagement.plist
 tuts/tuts.xcodeproj/project.xcworkspace/contents.xcworkspacedata
 tuts/tuts.xcodeproj/project.xcworkspace/xcuserdata/Kathryn.xcuserdatad/UserInterfaceState.xcuserstate
+tuts/Makefile
+tuts/nbproject/**
