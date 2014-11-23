@@ -7,11 +7,12 @@
 //
 
 #include <iostream>
+#include "Game.h"
 
-int main() {
+int main(int argc, char** argv) {
+    Game game;
+    game.init();
     
-    std::cout << "Hello, World!\n";
-    std::cout << "Helloooooo\n";
-    
+    std::cout << "woot" << std::endl;
     return 0;
 }
