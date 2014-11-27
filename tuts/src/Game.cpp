@@ -7,6 +7,7 @@ Game::Game() {
     _gameState = GameState::PLAY;
     _time = 0.0f;
     _uniformID = 0;
+    _maxFPS = 60.0f;
 }
 
 Game::~Game() {
@@ -49,16 +50,35 @@ void Game::setupShaders() {
 }
 
 void Game::setupDisplayObjects() {
-    _sprite.init(-1.0f, -1.0f, 2.0f, 2.0f);
+    _sprites.push_back(new Sprite());
+    _sprites.back()->init(-1.0f, -1.0f, 1.0f, 1.0f, "/Users/Kathryn/Documents/github/practice/tuts/resources/jimmyJump_pack/PNG/AngryCloud.png");
     
-    _texture = ImageLoader::loadPNG("/Users/Kathryn/Documents/github/practice/tuts/resources/jimmyJump_pack/PNG/AngryCloud.png");
+    _sprites.push_back(new Sprite());
+    _sprites.back()->init(0.0f, 0.0f, 1.0f, 1.0f, "/Users/Kathryn/Documents/github/practice/tuts/resources/jimmyJump_pack/PNG/CharacterRight_Standing.png");
 }
 
 void Game::run() {
     while (_gameState != GameState::EXIT) {
+        float startTicks = SDL_GetTicks(); //for frame time measuring
+        
         processInput();
         _time += 0.01f;
         draw();
+        calculateFPS();
+        
+        //print the FPS
+        static int frameCounter = 0;
+        frameCounter++;
+        if (frameCounter == 10) {
+            std::cout << _fps << std::endl;
+            frameCounter = 0;
+        }
+        
+        //limit FPS
+        float frameTicks = SDL_GetTicks() - startTicks;
+        if (1000.0f / _maxFPS > frameTicks) {
+            SDL_Delay(1000.0f / _maxFPS - frameTicks);
+        }
     }
 }
 
@@ -83,7 +103,6 @@ void Game::draw() {
     
     _colorProgram.use();
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, _texture.id);
     
     GLint textureLocation = _colorProgram.getUniformLocation("aSampler");
     glUniform1i(textureLocation, 0);
@@ -91,12 +110,46 @@ void Game::draw() {
     GLuint timeLocation = _colorProgram.getUniformLocation("time");
     glUniform1f(timeLocation, _time);
     
-    _sprite.draw();
+    for (int i = 0; i < _sprites.size(); i++) {
+        _sprites[i]->draw();
+    }
     
-    glBindTexture(GL_TEXTURE_2D, 0);
     _colorProgram.unuse();
     
     SDL_GL_SwapWindow(_window);
+}
+
+void Game::calculateFPS() {
+    static const int NUM_SAMPLES = 100;
+    static float frameTimes[NUM_SAMPLES];
+    static int currentFrame = 0;
+    
+    static float previousTicks = SDL_GetTicks();
+    float currentTicks = SDL_GetTicks();
+    
+    _frameTime = currentTicks - previousTicks;
+    frameTimes[currentFrame % NUM_SAMPLES] = _frameTime;
+    previousTicks = currentTicks;
+    
+    int count;
+    currentFrame++;
+    if (currentFrame < NUM_SAMPLES) {
+        count = currentFrame;
+    } else {
+        count = NUM_SAMPLES;
+    }
+    
+    float frameTimeAverage = 0;
+    for (int i = 0; i < count; i++) {
+        frameTimeAverage += frameTimes[i];
+    }
+    frameTimeAverage /= count;
+    
+    if (frameTimeAverage > 0) {
+        _fps = 1000.0f / frameTimeAverage;
+    } else {
+        _fps = 60.0f;
+    }
 }
 
 

@@ -8,14 +8,17 @@
 
 #include <OpenGL/gl3.h>
 #include "Vertex.h"
+#include "GLTexture.h"
+#include "ResourceManager.h"
 #include <cstddef>
 #include <iostream>
+#include <string>
 
 class Sprite {
 public:
     Sprite();
     ~Sprite();
-    void init(float x, float y, float width, float height);
+    void init(float x, float y, float width, float height, std::string texturePath);
     void draw();
     
 private:
@@ -25,6 +28,7 @@ private:
     float _height;
     GLuint _vboID;
     GLuint _vaoID;
+    GLTexture _texture;
     
 };
 #endif /* defined(__tuts__Sprite__) */

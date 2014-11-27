@@ -2,6 +2,7 @@
 #define __tuts__Game__
 
 #include <iostream>
+#include <vector>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>
 #include <GLUT/GLUT.h>
@@ -25,11 +26,13 @@ private:
     int _screenWidth;
     int _screenHeight;
     GameState _gameState;
-    Sprite _sprite;
-    GLTexture _texture;
+    std::vector<Sprite*> _sprites;
     GLSLProgram _colorProgram;
     float _time;
     int _uniformID;
+    float _fps;
+    float _frameTime;
+    float _maxFPS;
     
     void setupWindow();
     void setupShaders();
@@ -37,6 +40,7 @@ private:
     void run();
     void processInput();
     void draw();
+    void calculateFPS();
     
 };
 #endif /* defined(__tuts__Game__) */
