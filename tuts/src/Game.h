@@ -3,15 +3,15 @@
 
 #include <iostream>
 #include <vector>
-#include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>
-#include <GLUT/GLUT.h>
+#include <CoreFoundation/CoreFoundation.h>
 #include "Sprite.h"
 #include "GLTexture.h"
 #include "ImageLoader.h"
-#include "Errors.h"
 #include "GLSLProgram.h"
-#include "CoreFoundation/CoreFoundation.h"
+#include "Window.h"
+#include "Camera2D.h"
+#include "SpriteBatch.h"
 
 enum class GameState { PLAY, EXIT };
 
@@ -22,21 +22,23 @@ public:
     void init();
     
 private:
-    SDL_Window* _window;
+    Window _window;
     int _screenWidth;
     int _screenHeight;
     GameState _gameState;
-    std::vector<Sprite*> _sprites;
+    //std::vector<Sprite*> _sprites;
     GLSLProgram _colorProgram;
     float _time;
     int _uniformID;
     float _fps;
     float _frameTime;
     float _maxFPS;
+    Camera2D _camera;
+    SpriteBatch _spriteBatch;
     
     void setupWindow();
     void setupShaders();
-    void setupDisplayObjects();
+    //void setupDisplayObjects();
     void run();
     void processInput();
     void draw();

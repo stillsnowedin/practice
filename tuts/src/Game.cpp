@@ -1,13 +1,14 @@
 #include "Game.h"
 
 Game::Game() {
-    _window = nullptr;
     _screenWidth = 640;
     _screenHeight = 480;
     _gameState = GameState::PLAY;
     _time = 0.0f;
     _uniformID = 0;
     _maxFPS = 60.0f;
+    
+    _camera.init(_screenWidth, _screenHeight);
 }
 
 Game::~Game() {
@@ -17,7 +18,8 @@ Game::~Game() {
 void Game::init() {
     setupWindow();
     setupShaders();
-    setupDisplayObjects();
+    _spriteBatch.init();
+    //setupDisplayObjects();
     run();
 }
 
@@ -28,34 +30,24 @@ void Game::setupWindow() {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     
-    _window = SDL_CreateWindow("Tuts Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, _screenWidth, _screenHeight, SDL_WINDOW_OPENGL);
-    if (_window == nullptr) {
-        fatalError("SDL Window could not be created!");
-    }
-    
-    SDL_GLContext context = SDL_GL_CreateContext(_window);
-    if (context == nullptr) {
-        fatalError("SDL Context could not be created!");
-    }
-    
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    _window.create("Tuts Game", _screenWidth, _screenHeight, 0);
 }
 
 void Game::setupShaders() {
-    _colorProgram.initShaders("/Users/Kathryn/Documents/github/practice/tuts/shaders/colorShading.vert", "/Users/Kathryn/Documents/github/practice/tuts/shaders/colorShading.frag");
+    _colorProgram.initShaders("shaders/colorShading.vert", "shaders/colorShading.frag");
     _colorProgram.addAttribute("vertexPosition");
     _colorProgram.addAttribute("vertexColor");
     _colorProgram.addAttribute("vertexUV");
     _colorProgram.linkShaders();
 }
 
-void Game::setupDisplayObjects() {
-    _sprites.push_back(new Sprite());
-    _sprites.back()->init(-1.0f, -1.0f, 1.0f, 1.0f, "/Users/Kathryn/Documents/github/practice/tuts/resources/jimmyJump_pack/PNG/AngryCloud.png");
-    
-    _sprites.push_back(new Sprite());
-    _sprites.back()->init(0.0f, 0.0f, 1.0f, 1.0f, "/Users/Kathryn/Documents/github/practice/tuts/resources/jimmyJump_pack/PNG/CharacterRight_Standing.png");
-}
+//void Game::setupDisplayObjects() {
+//    _sprites.push_back(new Sprite());
+//    _sprites.back()->init(0.0f, 0.0f, _screenWidth/2, _screenWidth/2, "resources/jimmyJump_pack/PNG/AngryCloud.png");
+//    
+//    _sprites.push_back(new Sprite());
+//    _sprites.back()->init(_screenWidth/2, 0.0f, _screenWidth/2, _screenWidth/2, "resources/jimmyJump_pack/PNG/CharacterRight_Standing.png");
+//}
 
 void Game::run() {
     while (_gameState != GameState::EXIT) {
@@ -63,6 +55,8 @@ void Game::run() {
         
         processInput();
         _time += 0.01f;
+        _camera.update();
+        
         draw();
         calculateFPS();
         
@@ -85,14 +79,38 @@ void Game::run() {
 void Game::processInput() {
     SDL_Event input;
     
+    const float CAMERA_SPEED = 20.0f;
+    const float SCALE_SPEED = 0.1f;
+    
     while (SDL_PollEvent(&input)) {
         switch (input.type) {
             case SDL_QUIT:
                 _gameState = GameState::EXIT;
                 break;
             case SDL_MOUSEMOTION:
-                std::cout << input.motion.x << " " << input.motion.y << std::endl;
+                //std::cout << input.motion.x << " " << input.motion.y << std::endl;
                 break;
+            case SDL_KEYDOWN:
+                switch (input.key.keysym.sym) {
+                    case SDLK_w:
+                        _camera.setPosition(_camera.getPosition() + glm::vec2(0.0, -CAMERA_SPEED));
+                        break;
+                    case SDLK_s:
+                        _camera.setPosition(_camera.getPosition() + glm::vec2(0.0, CAMERA_SPEED));
+                        break;
+                    case SDLK_a:
+                        _camera.setPosition(_camera.getPosition() + glm::vec2(CAMERA_SPEED, 0.0));
+                        break;
+                    case SDLK_d:
+                        _camera.setPosition(_camera.getPosition() + glm::vec2(-CAMERA_SPEED, 0.0));
+                        break;
+                    case SDLK_q:
+                        _camera.setScale(_camera.getScale() + SCALE_SPEED);
+                        break;
+                    case SDLK_e:
+                        _camera.setScale(_camera.getScale() - SCALE_SPEED);
+                        break;
+                }
         }
     }
 }
@@ -110,13 +128,33 @@ void Game::draw() {
     GLuint timeLocation = _colorProgram.getUniformLocation("time");
     glUniform1f(timeLocation, _time);
     
-    for (int i = 0; i < _sprites.size(); i++) {
-        _sprites[i]->draw();
-    }
+    GLint pLocation = _colorProgram.getUniformLocation("P");
+    glm::mat4 cameraMatrix = _camera.getCameraMatrix();
+    glUniformMatrix4fv(pLocation, 1, GL_FALSE, &cameraMatrix[0][0]);
     
+//    for (int i = 0; i < _sprites.size(); i++) {
+//        _sprites[i]->draw();
+//    }
+    
+    _spriteBatch.begin();
+    
+    glm::vec4 pos(0.0f, 0.0f, 50.0f, 50.0f);
+    glm::vec4 uv(0.0f, 0.0f, 1.0f, 1.0f);
+    static GLTexture texture = ResourceManager::getTexture("resources/jimmyJump_pack/PNG/AngryCloud.png");
+    Color color;
+    color.r = 255;
+    color.g = 255;
+    color.b = 255;
+    color.a = 255;
+    
+    _spriteBatch.draw(pos, uv, texture.id, 0.0f, color);
+    _spriteBatch.draw(pos + glm::vec4(50, 0, 0, 0), uv, texture.id, 0.0f, color);
+    
+    _spriteBatch.end();
+    _spriteBatch.renderBatch();
     _colorProgram.unuse();
     
-    SDL_GL_SwapWindow(_window);
+    _window.swapBuffer();
 }
 
 void Game::calculateFPS() {
