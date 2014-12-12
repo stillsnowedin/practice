@@ -38,8 +38,6 @@ public:
     bool operator!=(const vector3d vec2);
     
     friend std::ostream& operator<<(std::ostream& out, vector3d& vec);
-private:
-    
     
 };
 
