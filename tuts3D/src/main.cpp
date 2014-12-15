@@ -13,6 +13,55 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+float angle = 0;
+const int triangle = 1;
+
+void drawCube(float size) {
+    glBegin(GL_QUADS);
+    //front
+    glColor3f(1.0, 0.0, 0.0);
+    glVertex3f(size/2, size/2, size/2);
+    glVertex3f(-size/2, size/2, size/2);
+    glVertex3f(-size/2, -size/2, size/2);
+    glVertex3f(size/2, -size/2, size/2);
+    
+    //left
+    glColor3f(0.0, 1.0, 0.0);
+    glVertex3f(-size/2, size/2, size/2);
+    glVertex3f(-size/2, size/2, -size/2);
+    glVertex3f(-size/2, -size/2, -size/2);
+    glVertex3f(-size/2, -size/2, size/2);
+    
+    //back
+    glColor3f(0.0, 0.0, 1.0);
+    glVertex3f(size/2, size/2, -size/2);
+    glVertex3f(-size/2, size/2, -size/2);
+    glVertex3f(-size/2, -size/2, -size/2);
+    glVertex3f(size/2, -size/2, -size/2);
+
+    //right
+    glColor3f(1.0, 1.0, 0.0);
+    glVertex3f(size/2, size/2, -size/2);
+    glVertex3f(size/2, size/2, size/2);
+    glVertex3f(size/2, -size/2, size/2);
+    glVertex3f(size/2, -size/2, -size/2);
+
+    //top
+    glColor3f(1.0, 0.0, 1.0);
+    glVertex3f(size/2, size/2, size/2);
+    glVertex3f(-size/2, size/2, size/2);
+    glVertex3f(-size/2, size/2, -size/2);
+    glVertex3f(size/2, size/2, -size/2);
+
+    //bottom
+    glColor3f(0.0, 1.0, 1.0);
+    glVertex3f(size/2, -size/2, size/2);
+    glVertex3f(-size/2, -size/2, size/2);
+    glVertex3f(-size/2, -size/2, -size/2);
+    glVertex3f(size/2, -size/2, -size/2);
+    glEnd();
+}
+
 void init() {
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glMatrixMode(GL_PROJECTION);
@@ -26,19 +75,32 @@ void init() {
     //glUniformMatrix4fv(projectionUniformLocation, 1, GL_FALSE, glm::value_ptr(projection));
     
     glMatrixMode(GL_MODELVIEW);
+    glEnable(GL_DEPTH_TEST);
+    
+    /*glNewList(triangle, GL_COMPILE);
+    glBegin(GL_TRIANGLES);
+    glColor3f(1.0, 0.0, 0.0);
+    glVertex3f(0.0, 2.0, -5.0);
+    glColor3f(0.0, 1.0, 0.0);
+    glVertex3f(-2.0, -2.0, -5.0);
+    glColor3f(0.0, 0.0, 1.0);
+    glVertex3f(2.0, -2.0, -5.0);
+    glEnd();
+    glEndList();
+     */
 }
 
 void display() {
-    glClearDepth(1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnableClientState(GL_COLOR_ARRAY);
+    glLoadIdentity();
     
-    glBegin(GL_TRIANGLES);
-    glColor3f(1.0f, 0.0f, 0.0f);
-    glVertex3f(0.0f, 2.0f, -5.0f);
-    glVertex3f(-2.0f, -2.0f, -5.0f);
-    glVertex3f(2.0f, -2.0f, -5.0f);
-    glEnd();
+    //glScalef(1.0, 0.5, 0.5);
+    glTranslatef(0.0, 0.0, -5.0);
+    glRotatef(angle, 1.0, 1.0, 1.0);
+    //glCallList(triangle);
+    
+    drawCube(1.0);
 }
 
 int main(int argc, const char * argv[]) {
@@ -68,6 +130,9 @@ int main(int argc, const char * argv[]) {
         
         display();
         SDL_GL_SwapWindow(screen);
+        angle += 0.5;
+        if (angle > 360)
+            angle = 0;
         
         if (1000/30 > SDL_GetTicks() - start) {
             SDL_Delay(1000/30 - (SDL_GetTicks() - start));
