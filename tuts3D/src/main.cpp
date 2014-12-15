@@ -2,8 +2,7 @@
 //  main.cpp
 //  tuts3D
 //
-//  Created by Kathryn on 12/9/14.
-//  Copyright (c) 2014 stillsnowedin. All rights reserved.
+//  Created by stillsnowedin on 12/9/14.
 //
 
 #include <SDL2/SDL.h>
@@ -12,64 +11,122 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <fstream>
+#include <cstdio>
+
+struct coordinate {
+    float x, y, z;
+    coordinate(float a, float b, float c) : x(a), y(b), z(c) {};
+};
+
+struct face {
+    int faceNum;
+    bool isQuad;
+    int faces[4];
+    
+    face(int facen, int f1, int f2, int f3) : faceNum(facen) {
+        faces[0] = f1;
+        faces[1] = f2;
+        faces[2] = f3;
+        isQuad = false;
+    }
+    
+    face(int facen, int f1, int f2, int f3, int f4) : faceNum(facen) {
+        faces[0] = f1;
+        faces[1] = f2;
+        faces[2] = f3;
+        faces[3] = f4;
+        isQuad = true;
+    }
+};
 
 float angle = 0;
-//const int triangle = 1;
 unsigned int tex;
+unsigned int cube;
 
-void drawCube(float size) {
-    float difamb[] = { 0.5, 0.0, 0.5, 1.0 };
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, difamb);
+int loadObject(const char* filename) {
+    std::vector<std::string*> coords;
+    std::vector<coordinate*> vertices;
+    std::vector<face*> faces;
+    std::vector<coordinate*> normals;
     
-    glBegin(GL_QUADS);
-    //front
-    glNormal3f(0.0, 0.0, 1.0);
-    glColor3f(1.0, 0.0, 0.0);
-    glVertex3f(size/2, size/2, size/2);
-    glVertex3f(-size/2, size/2, size/2);
-    glVertex3f(-size/2, -size/2, size/2);
-    glVertex3f(size/2, -size/2, size/2);
+    std::ifstream in(filename);
+    if (!in.is_open()) {
+        std::cout << "Could not open " << filename << std::endl;
+        return -1;
+    }
     
-    //left
-    glNormal3f(-1.0, 0.0, 0.0);
-    glColor3f(0.0, 1.0, 0.0);
-    glVertex3f(-size/2, size/2, size/2);
-    glVertex3f(-size/2, size/2, -size/2);
-    glVertex3f(-size/2, -size/2, -size/2);
-    glVertex3f(-size/2, -size/2, size/2);
+    char buf[256];
+    while (!in.eof()) {
+        in.getline(buf, 256);
+        coords.push_back(new std::string(buf));
+    }
     
-    //back
-    glNormal3f(0.0, 0.0, -1.0);
-    glColor3f(0.0, 0.0, 1.0);
-    glVertex3f(size/2, size/2, -size/2);
-    glVertex3f(-size/2, size/2, -size/2);
-    glVertex3f(-size/2, -size/2, -size/2);
-    glVertex3f(size/2, -size/2, -size/2);
-
-    //right
-    glNormal3f(1.0, 0.0, 0.0);
-    glColor3f(1.0, 1.0, 0.0);
-    glVertex3f(size/2, size/2, -size/2);
-    glVertex3f(size/2, size/2, size/2);
-    glVertex3f(size/2, -size/2, size/2);
-    glVertex3f(size/2, -size/2, -size/2);
-
-    //top
-    glNormal3f(0.0, 1.0, 0.0);
-    glColor3f(1.0, 0.0, 1.0);
-    glVertex3f(size/2, size/2, size/2);
-    glVertex3f(-size/2, size/2, size/2);
-    glVertex3f(-size/2, size/2, -size/2);
-    glVertex3f(size/2, size/2, -size/2);
-
-    //bottom
-    glNormal3f(0.0, -1.0, 0.0);
-    glColor3f(0.0, 1.0, 1.0);
-    glVertex3f(size/2, -size/2, size/2);
-    glVertex3f(-size/2, -size/2, size/2);
-    glVertex3f(-size/2, -size/2, -size/2);
-    glVertex3f(size/2, -size/2, -size/2);
-    glEnd();
+    for (int k=0; k<coords.size(); k++) {
+        if ((*coords[k])[0] == '#') { //ignore comments
+            continue;
+        } else if ((*coords[k])[0] == 'v' && (*coords[k])[1] == ' ') { //load vertices
+            float tmpx, tmpy, tmpz;
+            sscanf(coords[k]->c_str(), "v %f %f %f", &tmpx, &tmpy, &tmpz);
+            vertices.push_back(new coordinate(tmpx, tmpy, tmpz));
+        } else if ((*coords[k])[0] == 'v' && (*coords[k])[1] == 'n') { //load normals
+            float tmpx, tmpy, tmpz;
+            sscanf(coords[k]->c_str(), "vn %f %f %f", &tmpx, &tmpy, &tmpz);
+            normals.push_back(new coordinate(tmpx, tmpy, tmpz));
+        } else if ((*coords[k])[0] == 'f') { //load faces
+            int a, b, c, d, e;
+            if (count(coords[k]->begin(), coords[k]->end(), ' ') == 4) { //quad
+                sscanf(coords[k]->c_str(), "f %d//%d %d//%d %d//%d %d//%d", &a, &b, &c, &b, &d, &b, &e, &b);
+                faces.push_back(new face(b, a, c, d, e));
+            } else { //triangle
+                sscanf(coords[k]->c_str(), "f %d//%d %d//%d %d//%d", &a, &b, &c, &b, &d, &b);
+                faces.push_back(new face(b, a, c, d));
+            }
+        }
+        
+    }
+    
+    //draw
+    int num;
+    num = glGenLists(1);
+    glNewList(num, GL_COMPILE);
+    for (int j = 0; j < faces.size(); j++) {
+        if (faces[j]->isQuad) {
+            glBegin(GL_QUADS);
+            glNormal3f(normals[faces[j]->faceNum-1]->x, normals[faces[j]->faceNum-1]->y, normals[faces[j]->faceNum-1]->z);
+            glVertex3f(vertices[faces[j]->faces[0]-1]->x, vertices[faces[j]->faces[0]-1]->y, vertices[faces[j]->faces[0]-1]->z);
+            glVertex3f(vertices[faces[j]->faces[1]-1]->x, vertices[faces[j]->faces[1]-1]->y, vertices[faces[j]->faces[1]-1]->z);
+            glVertex3f(vertices[faces[j]->faces[2]-1]->x, vertices[faces[j]->faces[2]-1]->y, vertices[faces[j]->faces[2]-1]->z);
+            glVertex3f(vertices[faces[j]->faces[3]-1]->x, vertices[faces[j]->faces[3]-1]->y, vertices[faces[j]->faces[3]-1]->z);
+            glEnd();
+        } else {
+            glBegin(GL_TRIANGLES);
+            glNormal3f(normals[faces[j]->faceNum-1]->x, normals[faces[j]->faceNum-1]->y, normals[faces[j]->faceNum-1]->z);
+            glVertex3f(vertices[faces[j]->faces[0]-1]->x, vertices[faces[j]->faces[0]-1]->y, vertices[faces[j]->faces[0]-1]->z);
+            glVertex3f(vertices[faces[j]->faces[1]-1]->x, vertices[faces[j]->faces[1]-1]->y, vertices[faces[j]->faces[1]-1]->z);
+            glVertex3f(vertices[faces[j]->faces[2]-1]->x, vertices[faces[j]->faces[2]-1]->y, vertices[faces[j]->faces[2]-1]->z);
+            glEnd();
+        }
+    }
+    glEndList();
+    
+    for (int i=0; i<coords.size(); i++) {
+        delete coords[i];
+    }
+    for (int i=0; i<faces.size(); i++) {
+        delete faces[i];
+    }
+    for (int i=0; i<normals.size(); i++) {
+        delete normals[i];
+    }
+    for (int i=0; i<vertices.size(); i++) {
+        delete vertices[i];
+    }
+    return num;
 }
 
 unsigned int loadTexture(const char* filename) {
@@ -99,28 +156,17 @@ void init() {
     
     glMatrixMode(GL_MODELVIEW);
     glEnable(GL_DEPTH_TEST);
-    //glEnable(GL_LIGHTING);
-    //glEnable(GL_LIGHT0);
-    glEnable(GL_TEXTURE_2D);
-    //glEnable(GL_COLOR_MATERIAL);
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    glEnable(GL_COLOR_MATERIAL);
     
-    //float dif[] = { 1.0, 1.0, 1.0, 1.0 };
-    //glLightfv(GL_LIGHT0, GL_DIFFUSE, dif);
+    float dif[] = { 0.0, 0.0, 1.0, 1.0 };
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, dif);
     //float amb[] = { 0.2, 0.2, 0.2, 1.0 };
     //glLightfv(GL_LIGHT0, GL_AMBIENT, amb);
     
     tex = loadTexture("assets/wall.bmp");
-    /*glNewList(triangle, GL_COMPILE);
-    glBegin(GL_TRIANGLES);
-    glColor3f(1.0, 0.0, 0.0);
-    glVertex3f(0.0, 2.0, -5.0);
-    glColor3f(0.0, 1.0, 0.0);
-    glVertex3f(-2.0, -2.0, -5.0);
-    glColor3f(0.0, 0.0, 1.0);
-    glVertex3f(2.0, -2.0, -5.0);
-    glEnd();
-    glEndList();
-     */
+    cube = loadObject("assets/test.obj");
 }
 
 void display() {
@@ -128,26 +174,15 @@ void display() {
     glEnableClientState(GL_COLOR_ARRAY);
     glLoadIdentity();
     
-    //float pos[] = { -2.0, 2.0, -3.0, 1.0 };
-    //glLightfv(GL_LIGHT0, GL_POSITION, pos);
+    float pos[] = { -1.0, 1.0, -2.0, 1.0 };
+    glLightfv(GL_LIGHT0, GL_POSITION, pos);
     
     //glScalef(1.0, 0.5, 0.5);
     glTranslatef(0.0, 0.0, -5.0);
     glRotatef(angle, 1.0, 1.0, 1.0);
     //glCallList(triangle);
     
-    //drawCube(1.0);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glBegin(GL_QUADS);
-    glTexCoord2f(0.0, 2.0);
-    glVertex3f(-2.0, 2.0, 0.0);
-    glTexCoord2f(0.0, 0.0);
-    glVertex3f(-2.0, -2.0, 0.0);
-    glTexCoord2f(2.0, 0.0);
-    glVertex3f(2.0, -2.0, 0.0);
-    glTexCoord2f(2.0, 2.0);
-    glVertex3f(2.0, 2.0, 0.0);
-    glEnd();
+    glCallList(cube);
 }
 
 int main(int argc, const char * argv[]) {
