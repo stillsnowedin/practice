@@ -14,11 +14,16 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 float angle = 0;
-const int triangle = 1;
+//const int triangle = 1;
+unsigned int tex;
 
 void drawCube(float size) {
+    float difamb[] = { 0.5, 0.0, 0.5, 1.0 };
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, difamb);
+    
     glBegin(GL_QUADS);
     //front
+    glNormal3f(0.0, 0.0, 1.0);
     glColor3f(1.0, 0.0, 0.0);
     glVertex3f(size/2, size/2, size/2);
     glVertex3f(-size/2, size/2, size/2);
@@ -26,6 +31,7 @@ void drawCube(float size) {
     glVertex3f(size/2, -size/2, size/2);
     
     //left
+    glNormal3f(-1.0, 0.0, 0.0);
     glColor3f(0.0, 1.0, 0.0);
     glVertex3f(-size/2, size/2, size/2);
     glVertex3f(-size/2, size/2, -size/2);
@@ -33,6 +39,7 @@ void drawCube(float size) {
     glVertex3f(-size/2, -size/2, size/2);
     
     //back
+    glNormal3f(0.0, 0.0, -1.0);
     glColor3f(0.0, 0.0, 1.0);
     glVertex3f(size/2, size/2, -size/2);
     glVertex3f(-size/2, size/2, -size/2);
@@ -40,6 +47,7 @@ void drawCube(float size) {
     glVertex3f(size/2, -size/2, -size/2);
 
     //right
+    glNormal3f(1.0, 0.0, 0.0);
     glColor3f(1.0, 1.0, 0.0);
     glVertex3f(size/2, size/2, -size/2);
     glVertex3f(size/2, size/2, size/2);
@@ -47,6 +55,7 @@ void drawCube(float size) {
     glVertex3f(size/2, -size/2, -size/2);
 
     //top
+    glNormal3f(0.0, 1.0, 0.0);
     glColor3f(1.0, 0.0, 1.0);
     glVertex3f(size/2, size/2, size/2);
     glVertex3f(-size/2, size/2, size/2);
@@ -54,12 +63,26 @@ void drawCube(float size) {
     glVertex3f(size/2, size/2, -size/2);
 
     //bottom
+    glNormal3f(0.0, -1.0, 0.0);
     glColor3f(0.0, 1.0, 1.0);
     glVertex3f(size/2, -size/2, size/2);
     glVertex3f(-size/2, -size/2, size/2);
     glVertex3f(-size/2, -size/2, -size/2);
     glVertex3f(size/2, -size/2, -size/2);
     glEnd();
+}
+
+unsigned int loadTexture(const char* filename) {
+    SDL_Surface* img = SDL_LoadBMP(filename);
+    unsigned int id;
+    glGenTextures(1, &id);
+    glBindTexture(GL_TEXTURE_2D, id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img->w, img->h, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, img->pixels);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    SDL_FreeSurface(img);
+    
+    return id;
 }
 
 void init() {
@@ -76,7 +99,17 @@ void init() {
     
     glMatrixMode(GL_MODELVIEW);
     glEnable(GL_DEPTH_TEST);
+    //glEnable(GL_LIGHTING);
+    //glEnable(GL_LIGHT0);
+    glEnable(GL_TEXTURE_2D);
+    //glEnable(GL_COLOR_MATERIAL);
     
+    //float dif[] = { 1.0, 1.0, 1.0, 1.0 };
+    //glLightfv(GL_LIGHT0, GL_DIFFUSE, dif);
+    //float amb[] = { 0.2, 0.2, 0.2, 1.0 };
+    //glLightfv(GL_LIGHT0, GL_AMBIENT, amb);
+    
+    tex = loadTexture("assets/wall.bmp");
     /*glNewList(triangle, GL_COMPILE);
     glBegin(GL_TRIANGLES);
     glColor3f(1.0, 0.0, 0.0);
@@ -95,12 +128,26 @@ void display() {
     glEnableClientState(GL_COLOR_ARRAY);
     glLoadIdentity();
     
+    //float pos[] = { -2.0, 2.0, -3.0, 1.0 };
+    //glLightfv(GL_LIGHT0, GL_POSITION, pos);
+    
     //glScalef(1.0, 0.5, 0.5);
     glTranslatef(0.0, 0.0, -5.0);
     glRotatef(angle, 1.0, 1.0, 1.0);
     //glCallList(triangle);
     
-    drawCube(1.0);
+    //drawCube(1.0);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glBegin(GL_QUADS);
+    glTexCoord2f(0.0, 2.0);
+    glVertex3f(-2.0, 2.0, 0.0);
+    glTexCoord2f(0.0, 0.0);
+    glVertex3f(-2.0, -2.0, 0.0);
+    glTexCoord2f(2.0, 0.0);
+    glVertex3f(2.0, -2.0, 0.0);
+    glTexCoord2f(2.0, 2.0);
+    glVertex3f(2.0, 2.0, 0.0);
+    glEnd();
 }
 
 int main(int argc, const char * argv[]) {
