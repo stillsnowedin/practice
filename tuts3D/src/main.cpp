@@ -26,26 +26,11 @@ void init() {
     glm::mat4 projection = glm::perspective(45.0f, resW/resH, 1.0f, 500.0f);
     glLoadMatrixf(glm::value_ptr(projection));
     
-    // if you're using the new shader based pipelines
-    //GLint projectionUniformLocation = ...;
-    //glUniformMatrix4fv(projectionUniformLocation, 1, GL_FALSE, glm::value_ptr(projection));
-    
     glMatrixMode(GL_MODELVIEW);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     //glEnable(GL_COLOR_MATERIAL);
-    //glEnable(GL_FOG);
-    //glEnable(GL_BLEND);
-    
-    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    
-//    glFogi(GL_FOG_MODE, GL_LINEAR);
-//    //glFogf(GL_FOG_DENSITY, 0.3);
-//    glFogf(GL_FOG_START, 1.0);
-//    glFogf(GL_FOG_END, 5.0);
-//    float color[] = {0.1, 0.1, 0.1, 1.0};
-//    glFogfv(GL_FOG_COLOR, color);
     
     float dif[] = {1.0, 1.0, 1.0, 1.0};
     glLightfv(GL_LIGHT0, GL_DIFFUSE, dif);
@@ -64,8 +49,8 @@ void display() {
     float pos[] = {-1.0, 5.0, 10.0, 1.0};
     glLightfv(GL_LIGHT0, GL_POSITION, pos);
     
-    //glTranslatef(0.0, 0.0, -5.0);
-    //glRotatef(angle, 1.0, 1.0, 1.0);
+    glTranslatef(0.0, 0.0, -5.0);
+    glRotatef(angle, 1.0, 1.0, 1.0);
     
     glCallList(model);
 }
@@ -113,6 +98,7 @@ int main(int argc, const char * argv[]) {
         display();
         SDL_GL_SwapWindow(screen);
         //SDL_WarpMouseInWindow(screen, resW/2, resH/2);
+        
         angle += 0.5;
         if (angle > 360)
             angle = 0;
@@ -121,6 +107,7 @@ int main(int argc, const char * argv[]) {
             SDL_Delay(1000/30 - (SDL_GetTicks() - start));
         }
     }
+    
     SDL_Quit();
     killSkybox();
     
