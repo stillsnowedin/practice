@@ -1,84 +1,179 @@
 #include "functions.h"
 
-int loadObject(const char* filename) {
-    std::vector<std::string*> coords;
-    std::vector<coordinate*> vertices;
-    std::vector<face*> faces;
-    std::vector<coordinate*> normals;
+enum {SKY_LEFT = 0, SKY_BACK = 1, SKY_RIGHT = 2, SKY_FRONT = 3, SKY_TOP = 4, SKY_BOTTOM = 5};
+
+float camX = 0.0, camY = 0.0, camZ = 5.0;
+float camYaw = 0.0;
+float camPitch = 0.0;
+unsigned int skybox[6];
+
+#ifndef M_PI
+#define M_PI = 3.1415926535
+#endif
+
+void initSkybox() {
+    skybox[SKY_LEFT] = loadTexture("assets/sky_left.bmp");
+    skybox[SKY_BACK] = loadTexture("assets/sky_back.bmp");
+    skybox[SKY_RIGHT] = loadTexture("assets/sky_right.bmp");
+    skybox[SKY_FRONT] = loadTexture("assets/sky_front.bmp");
+    skybox[SKY_TOP] = loadTexture("assets/sky_top.bmp");
+    skybox[SKY_BOTTOM] = loadTexture("assets/sky_bottom.bmp");
+}
+
+void drawSkybox(float size) {
+    bool b1 = glIsEnabled(GL_TEXTURE_2D);
     
-    std::ifstream in(filename);
-    if (!in.is_open()) {
-        std::cout << "Could not open " << filename << std::endl;
-        return -1;
-    }
+    glDisable(GL_LIGHTING);
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_TEXTURE_2D);
     
-    char buf[256];
-    while (!in.eof()) {
-        in.getline(buf, 256);
-        coords.push_back(new std::string(buf));
-    }
+    //front face
+    glBindTexture(GL_TEXTURE_2D, skybox[SKY_FRONT]);
+    glBegin(GL_QUADS);
+    glTexCoord2f(1, 0);
+    glVertex3f(size/2, size/2, size/2);
+    glTexCoord2f(0, 0);
+    glVertex3f(-size/2, size/2, size/2);
+    glTexCoord2f(0, 1);
+    glVertex3f(-size/2, -size/2, size/2);
+    glTexCoord2f(1, 1);
+    glVertex3f(size/2, -size/2, size/2);
+    glEnd();
     
-    for (int k=0; k<coords.size(); k++) {
-        if ((*coords[k])[0] == '#') { //ignore comments
-            continue;
-        } else if ((*coords[k])[0] == 'v' && (*coords[k])[1] == ' ') { //load vertices
-            float tmpx, tmpy, tmpz;
-            sscanf(coords[k]->c_str(), "v %f %f %f", &tmpx, &tmpy, &tmpz);
-            vertices.push_back(new coordinate(tmpx, tmpy, tmpz));
-        } else if ((*coords[k])[0] == 'v' && (*coords[k])[1] == 'n') { //load normals
-            float tmpx, tmpy, tmpz;
-            sscanf(coords[k]->c_str(), "vn %f %f %f", &tmpx, &tmpy, &tmpz);
-            normals.push_back(new coordinate(tmpx, tmpy, tmpz));
-        } else if ((*coords[k])[0] == 'f') { //load faces
-            int a, b, c, d, e;
-            if (count(coords[k]->begin(), coords[k]->end(), ' ') == 4) { //quad
-                sscanf(coords[k]->c_str(), "f %d//%d %d//%d %d//%d %d//%d", &a, &b, &c, &b, &d, &b, &e, &b);
-                faces.push_back(new face(b, a, c, d, e));
-            } else { //triangle
-                sscanf(coords[k]->c_str(), "f %d//%d %d//%d %d//%d", &a, &b, &c, &b, &d, &b);
-                faces.push_back(new face(b, a, c, d));
-            }
+    //left face
+    glBindTexture(GL_TEXTURE_2D, skybox[SKY_LEFT]);
+    glBegin(GL_QUADS);
+    glTexCoord2f(0, 0);
+    glVertex3f(-size/2,size/2,size/2);
+    glTexCoord2f(1, 0);
+    glVertex3f(-size/2,size/2,-size/2);
+    glTexCoord2f(1, 1);
+    glVertex3f(-size/2,-size/2,-size/2);
+    glTexCoord2f(0, 1);
+    glVertex3f(-size/2,-size/2,size/2);
+    glEnd();
+    
+    //back face
+    glBindTexture(GL_TEXTURE_2D, skybox[SKY_BACK]);
+    glBegin(GL_QUADS);
+    glTexCoord2f(0, 0);
+    glVertex3f(size/2,size/2,-size/2);
+    glTexCoord2f(1, 0);
+    glVertex3f(-size/2,size/2,-size/2);
+    glTexCoord2f(1, 1);
+    glVertex3f(-size/2,-size/2,-size/2);
+    glTexCoord2f(0, 1);
+    glVertex3f(size/2,-size/2,-size/2);
+    glEnd();
+    
+    //right face
+    glBindTexture(GL_TEXTURE_2D, skybox[SKY_RIGHT]);
+    glBegin(GL_QUADS);
+    glTexCoord2f(0, 0);
+    glVertex3f(size/2,size/2,-size/2);
+    glTexCoord2f(1, 0);
+    glVertex3f(size/2,size/2,size/2);
+    glTexCoord2f(1, 1);
+    glVertex3f(size/2,-size/2,size/2);
+    glTexCoord2f(0, 1);
+    glVertex3f(size/2,-size/2,-size/2);
+    glEnd();
+    
+    //top face
+    glBindTexture(GL_TEXTURE_2D, skybox[SKY_TOP]);
+    glBegin(GL_QUADS);
+    glTexCoord2f(1, 0);
+    glVertex3f(size/2,size/2,size/2);
+    glTexCoord2f(0, 0);
+    glVertex3f(-size/2,size/2,size/2);
+    glTexCoord2f(0, 1);
+    glVertex3f(-size/2,size/2,-size/2);
+    glTexCoord2f(1, 1);
+    glVertex3f(size/2,size/2,-size/2);
+    glEnd();
+    
+    //bottom face
+    glBindTexture(GL_TEXTURE_2D, skybox[SKY_BOTTOM]);
+    glBegin(GL_QUADS);
+    glTexCoord2f(1, 1);
+    glVertex3f(size/2,-size/2,size/2);
+    glTexCoord2f(0, 1);
+    glVertex3f(-size/2,-size/2,size/2);
+    glTexCoord2f(0, 0);
+    glVertex3f(-size/2,-size/2,-size/2);
+    glTexCoord2f(1, 0);
+    glVertex3f(size/2,-size/2,-size/2);
+    glEnd();
+    
+    glEnable(GL_LIGHTING);
+    glEnable(GL_DEPTH_TEST);
+    
+    if(!b1)
+        glDisable(GL_TEXTURE_2D);
+}
+
+void killSkybox() {
+    glDeleteTextures(6, &skybox[0]);
+}
+
+void lockCamera() {
+    if (camPitch > 90)
+        camPitch = 90;
+    if (camPitch < -90)
+        camPitch = -90;
+    if (camYaw < 0.0)
+        camYaw += 360;
+    if (camYaw > 360)
+        camYaw -= 360;
+}
+
+void moveCamera(float dist, float dir) {
+    float rad = (camYaw+dir)*M_PI/180.0;
+    camX -= sin(rad)*dist;
+    camZ -= cos(rad)*dist;
+}
+
+void moveCameraUp(float dist, float dir) {
+    float rad = (camPitch+dir)*M_PI/180.0;
+    camY -= sin(rad)*dist;
+}
+
+void control(float moveVelocity, float mouseVelocity, bool mouseIn) {
+    if (mouseIn) {
+        int midX = 512;
+        int midY = 384;
+        int tmpx, tmpy;
+        SDL_GetMouseState(&tmpx, &tmpy);
+        camYaw += mouseVelocity * (midX - tmpx);
+        camPitch += mouseVelocity * (midY - tmpy);
+        lockCamera();
+        
+        const Uint8* keys = SDL_GetKeyboardState(NULL);
+        if (keys[SDL_SCANCODE_W]) {
+            if (camPitch != 90 && camPitch != -90)
+                moveCamera(moveVelocity, 0.0);
+            moveCameraUp(moveVelocity, 180.0);
+        } else if (keys[SDL_SCANCODE_S]) {
+            if (camPitch != 90 && camPitch != -90)
+                moveCamera(moveVelocity, 180.0);
+            moveCameraUp(moveVelocity, 0.0);
         }
         
-    }
-    
-    //draw
-    int num;
-    num = glGenLists(1);
-    glNewList(num, GL_COMPILE);
-    for (int j = 0; j < faces.size(); j++) {
-        if (faces[j]->isQuad) {
-            glBegin(GL_QUADS);
-            glNormal3f(normals[faces[j]->faceNum-1]->x, normals[faces[j]->faceNum-1]->y, normals[faces[j]->faceNum-1]->z);
-            glVertex3f(vertices[faces[j]->faces[0]-1]->x, vertices[faces[j]->faces[0]-1]->y, vertices[faces[j]->faces[0]-1]->z);
-            glVertex3f(vertices[faces[j]->faces[1]-1]->x, vertices[faces[j]->faces[1]-1]->y, vertices[faces[j]->faces[1]-1]->z);
-            glVertex3f(vertices[faces[j]->faces[2]-1]->x, vertices[faces[j]->faces[2]-1]->y, vertices[faces[j]->faces[2]-1]->z);
-            glVertex3f(vertices[faces[j]->faces[3]-1]->x, vertices[faces[j]->faces[3]-1]->y, vertices[faces[j]->faces[3]-1]->z);
-            glEnd();
-        } else {
-            glBegin(GL_TRIANGLES);
-            glNormal3f(normals[faces[j]->faceNum-1]->x, normals[faces[j]->faceNum-1]->y, normals[faces[j]->faceNum-1]->z);
-            glVertex3f(vertices[faces[j]->faces[0]-1]->x, vertices[faces[j]->faces[0]-1]->y, vertices[faces[j]->faces[0]-1]->z);
-            glVertex3f(vertices[faces[j]->faces[1]-1]->x, vertices[faces[j]->faces[1]-1]->y, vertices[faces[j]->faces[1]-1]->z);
-            glVertex3f(vertices[faces[j]->faces[2]-1]->x, vertices[faces[j]->faces[2]-1]->y, vertices[faces[j]->faces[2]-1]->z);
-            glEnd();
+        if (keys[SDL_SCANCODE_A]) {
+            moveCamera(moveVelocity, 90.0);
+        } else if (keys[SDL_SCANCODE_D]) {
+            moveCamera(moveVelocity, 270.0);
         }
     }
-    glEndList();
     
-    for (int i=0; i<coords.size(); i++) {
-        delete coords[i];
-    }
-    for (int i=0; i<faces.size(); i++) {
-        delete faces[i];
-    }
-    for (int i=0; i<normals.size(); i++) {
-        delete normals[i];
-    }
-    for (int i=0; i<vertices.size(); i++) {
-        delete vertices[i];
-    }
-    return num;
+    glRotatef(-camPitch, 1.0, 0.0, 0.0);
+    glRotatef(-camYaw, 0.0, 1.0, 0.0);
+    camPitch = 0;
+    camYaw = 0;
+}
+
+void updateCamera() {
+    glTranslatef(-camX, -camY, -camZ);
 }
 
 unsigned int loadTexture(const char* filename) {
@@ -86,10 +181,59 @@ unsigned int loadTexture(const char* filename) {
     unsigned int id;
     glGenTextures(1, &id);
     glBindTexture(GL_TEXTURE_2D, id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img->w, img->h, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, img->pixels);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img->w, img->h, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, img->pixels);
+    glTexEnvi(GL_TEXTURE_2D, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     SDL_FreeSurface(img);
-    
     return id;
+}
+
+void drawCube(float size) {
+    float difamb[] = {1.0, 0.5, 0.3, 1.0};
+    glBegin(GL_QUADS);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, difamb);
+    
+    //front face
+    glNormal3f(0.0, 0.0, 1.0);
+    glVertex3f(size/2, size/2, size/2);
+    glVertex3f(-size/2, size/2, size/2);
+    glVertex3f(-size/2, -size/2, size/2);
+    glVertex3f(size/2, -size/2, size/2);
+    
+    //left face
+    glNormal3f(-1.0,0.0,0.0);
+    glVertex3f(-size/2,size/2,size/2);
+    glVertex3f(-size/2,size/2,-size/2);
+    glVertex3f(-size/2,-size/2,-size/2);
+    glVertex3f(-size/2,-size/2,size/2);
+    
+    //back face
+    glNormal3f(0.0,0.0,-1.0);
+    glVertex3f(size/2,size/2,-size/2);
+    glVertex3f(-size/2,size/2,-size/2);
+    glVertex3f(-size/2,-size/2,-size/2);
+    glVertex3f(size/2,-size/2,-size/2);
+    
+    //right face
+    glNormal3f(1.0,0.0,0.0);
+    glVertex3f(size/2,size/2,-size/2);
+    glVertex3f(size/2,size/2,size/2);
+    glVertex3f(size/2,-size/2,size/2);
+    glVertex3f(size/2,-size/2,-size/2);
+    
+    //top face
+    glNormal3f(0.0,1.0,0.0);
+    glVertex3f(size/2,size/2,size/2);
+    glVertex3f(-size/2,size/2,size/2);
+    glVertex3f(-size/2,size/2,-size/2);
+    glVertex3f(size/2,size/2,-size/2);
+    
+    //bottom face
+    glNormal3f(0.0,-1.0,0.0);
+    glVertex3f(size/2,-size/2,size/2);
+    glVertex3f(-size/2,-size/2,size/2);
+    glVertex3f(-size/2,-size/2,-size/2);
+    glVertex3f(size/2,-size/2,-size/2);
+    glEnd();
 }

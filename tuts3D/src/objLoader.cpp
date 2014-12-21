@@ -4,42 +4,19 @@ objLoader::objLoader() {
     isMaterial = false;
     isNormal = false;
     isTexture = false;
+    isVertexNormal = true;
 }
 
 objLoader::~objLoader() {
     for (std::vector<unsigned int>::const_iterator it = textures.begin(); it != textures.end(); it++) {
-        glDeleteTextures(1, &(*it));
+        glDeleteLists(*it, 1);
     }
     for (std::vector<unsigned int>::const_iterator it = lists.begin(); it != lists.end(); it++) {
         glDeleteLists(*it, 1);
     }
 }
 
-unsigned int objLoader::loadTexture(const char* filename) {
-    SDL_Surface* img = SDL_LoadBMP(filename);
-    unsigned int id;
-    glGenTextures(1, &id);
-    //glBindVertexArray(vao);
-    glBindTexture(GL_TEXTURE_2D, id);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img->w, img->h, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, img->pixels);
-    glTexEnvi(GL_TEXTURE_2D, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-    SDL_FreeSurface(img);
-    
-    textures.push_back(id);
-    return id;
-}
-
 int objLoader::loadObject(const char* filename) {
-    std::vector<std::string*> coords;
-    std::vector<coordinate*> vertices;
-    std::vector<face*> faces;
-    std::vector<coordinate*> normals;
-    
-    if (vao == 0)
-        glGenVertexArrays(1, &vao);
-    
     std::ifstream in(filename);
     if (!in.is_open()) {
         std::cout << "Could not open " << filename << std::endl;
@@ -185,6 +162,16 @@ int objLoader::loadObject(const char* filename) {
         }
     }
     
+    if(materials.size() == 0)
+        isMaterial=false;
+    else
+        isMaterial=true;
+    
+    std::cout << "vertices: " << vertices.size() << "\nnormals: " << normals.size() << "\nfaces: "<< faces.size() << "\nmaterials: " << materials.size() << std::endl;
+    if (isVertexNormal) {
+        smoothNormals();
+    }
+    
     //draw
     int num;
     num = glGenLists(1);
@@ -204,25 +191,37 @@ int objLoader::loadObject(const char* filename) {
                 glDisable(GL_TEXTURE_2D);
             } else {
                 glEnable(GL_TEXTURE_2D);
-                //glBindVertexArray(vao);
                 glBindTexture(GL_TEXTURE_2D, materials[faces[j]->mat]->texture);
             }
         }
         
         if (faces[j]->isQuad) {
             glBegin(GL_QUADS);
-            glNormal3f(normals[faces[j]->faceNum-1]->x, normals[faces[j]->faceNum-1]->y, normals[faces[j]->faceNum-1]->z);
-            glVertex3f(vertices[faces[j]->faces[0]-1]->x, vertices[faces[j]->faces[0]-1]->y, vertices[faces[j]->faces[0]-1]->z);
-            glVertex3f(vertices[faces[j]->faces[1]-1]->x, vertices[faces[j]->faces[1]-1]->y, vertices[faces[j]->faces[1]-1]->z);
-            glVertex3f(vertices[faces[j]->faces[2]-1]->x, vertices[faces[j]->faces[2]-1]->y, vertices[faces[j]->faces[2]-1]->z);
-            glVertex3f(vertices[faces[j]->faces[3]-1]->x, vertices[faces[j]->faces[3]-1]->y, vertices[faces[j]->faces[3]-1]->z);
+            for (int i = 0; i < 4; i++) {
+                glNormal3f(normals[faces[j]->faceNum-1]->x, normals[faces[j]->faceNum-1]->y, normals[faces[j]->faceNum-1]->z);
+                
+                if (isTexture && materials[faces[j]->mat]->texture != -1)
+                    glTexCoord2f(texCoords[faces[j]->texcoords[i]-1]->u, texCoords[faces[j]->texcoords[i]-1]->v);
+                    
+                if (isVertexNormal)
+                    glNormal3f(vertexNormals[faces[j]->faces[i]-1]->x, vertexNormals[faces[j]->faces[i]-1]->y, vertexNormals[faces[j]->faces[i]-1]->z);
+                
+                glVertex3f(vertices[faces[j]->faces[i]-1]->x, vertices[faces[j]->faces[i]-1]->y, vertices[faces[j]->faces[i]-1]->z);
+            }
             glEnd();
         } else {
             glBegin(GL_TRIANGLES);
-            glNormal3f(normals[faces[j]->faceNum-1]->x, normals[faces[j]->faceNum-1]->y, normals[faces[j]->faceNum-1]->z);
-            glVertex3f(vertices[faces[j]->faces[0]-1]->x, vertices[faces[j]->faces[0]-1]->y, vertices[faces[j]->faces[0]-1]->z);
-            glVertex3f(vertices[faces[j]->faces[1]-1]->x, vertices[faces[j]->faces[1]-1]->y, vertices[faces[j]->faces[1]-1]->z);
-            glVertex3f(vertices[faces[j]->faces[2]-1]->x, vertices[faces[j]->faces[2]-1]->y, vertices[faces[j]->faces[2]-1]->z);
+            for (int i = 0; i < 3; i++) {
+                glNormal3f(normals[faces[j]->faceNum-1]->x, normals[faces[j]->faceNum-1]->y, normals[faces[j]->faceNum-1]->z);
+                
+                if (isTexture && materials[faces[j]->mat]->texture != -1)
+                    glTexCoord2f(texCoords[faces[j]->texcoords[i]-1]->u, texCoords[faces[j]->texcoords[i]-1]->v);
+                
+                if (isVertexNormal)
+                    glNormal3f(vertexNormals[faces[j]->faces[i]-1]->x, vertexNormals[faces[j]->faces[i]-1]->y, vertexNormals[faces[j]->faces[i]-1]->z);
+                
+                glVertex3f(vertices[faces[j]->faces[i]-1]->x, vertices[faces[j]->faces[i]-1]->y, vertices[faces[j]->faces[i]-1]->z);
+            }
             glEnd();
         }
     }
@@ -231,6 +230,21 @@ int objLoader::loadObject(const char* filename) {
     clean();
     lists.push_back(num);
     return num;
+}
+
+unsigned int objLoader::loadTexture(const char* filename) {
+    SDL_Surface* img = SDL_LoadBMP(filename);
+    unsigned int id;
+    glGenTextures(1, &id);
+    glBindTexture(GL_TEXTURE_2D, id);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img->w, img->h, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, img->pixels);
+    glTexEnvi(GL_TEXTURE_2D, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    SDL_FreeSurface(img);
+    
+    textures.push_back(id);
+    return id;
 }
 
 void objLoader::clean() {
@@ -252,10 +266,46 @@ void objLoader::clean() {
     for (int i=0; i<texCoords.size(); i++) {
         delete texCoords[i];
     }
+    for (int i=0; i<vertexNormals.size(); i++) {
+        delete vertexNormals[i];
+    }
+    
     coords.clear();
     faces.clear();
     normals.clear();
     vertices.clear();
     materials.clear();
     texCoords.clear();
+    vertexNormals.clear();
+}
+
+void objLoader::smoothNormals() {
+    for (int i = 1; i < vertices.size()+1; i++) {
+        float vecX = 0.0, vecY = 0.0, vecZ = 0.0;
+        int num = 0;
+        
+        for (int j = 0; j < faces.size(); j++) {
+            if (faces[j]->faces[0] == i || faces[j]->faces[1] == i || faces[j]->faces[2] == i || faces[j]->faces[3] == i) {
+                vecX += normals[faces[j]->faceNum-1]->x;
+                vecY += normals[faces[j]->faceNum-1]->y;
+                vecZ += normals[faces[j]->faceNum-1]->z;
+                num++;
+            }
+        }
+        
+        if (num > 0) {
+            vecX /= num;
+            vecY /= num;
+            vecZ /= num;
+        }
+        
+        float d = sqrt(vecX*vecX + vecY*vecY + vecZ*vecZ);
+        if (d) {
+            vecX /= d;
+            vecY /= d;
+            vecZ /= d;
+        }
+        
+        vertexNormals.push_back(new coordinate(vecX, vecY, vecZ));
+    }
 }

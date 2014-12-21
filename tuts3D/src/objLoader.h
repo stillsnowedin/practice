@@ -96,12 +96,15 @@ private:
     std::vector<coordinate*> normals;
     std::vector<material*> materials;
     std::vector<texCoord*> texCoords;
+    std::vector<coordinate*> vertexNormals;
     std::vector<unsigned int> textures;
     std::vector<unsigned int> lists;
     unsigned int vao;
-    bool isMaterial, isNormal, isTexture;
+    bool isMaterial, isNormal, isTexture, isVertexNormal;
     unsigned int loadTexture(const char* filename);
     void clean();
+    void smoothNormals();
+    
 };
 
 #endif /* defined(__tuts3D__objLoader__) */
