@@ -14,9 +14,11 @@
 float resW = 1024.0f;
 float resH = 768.0f;
 float angle = 0.0;
-unsigned int model;
 objLoader obj;
 bool mouseIn = false;
+unsigned int model;
+coordinate sphereCenter(0.0, 0.0, 0.0);
+coordinate rayStart(0.0, 0.0, -5.0);
 
 void init() {
     glClearColor(0.3, 0.3, 0.3, 1.0f);
@@ -35,7 +37,7 @@ void init() {
     float dif[] = {1.0, 1.0, 1.0, 1.0};
     glLightfv(GL_LIGHT0, GL_DIFFUSE, dif);
     
-    model = obj.loadObject("assets/test.obj");
+    model = obj.loadObject("assets/sphere.obj");
     initSkybox();
 }
 
@@ -49,10 +51,24 @@ void display() {
     float pos[] = {-1.0, 5.0, 10.0, 1.0};
     glLightfv(GL_LIGHT0, GL_POSITION, pos);
     
-    glTranslatef(0.0, 0.0, -5.0);
-    glRotatef(angle, 1.0, 1.0, 1.0);
+    //glTranslatef(0.0, 0.0, -5.0);
+    //glRotatef(angle, 1.0, 1.0, 1.0);
     
+    if (raySphere(sphereCenter.x, sphereCenter.y, sphereCenter.z, 0.0, 0.0, 1.0, rayStart.x, rayStart.y, rayStart.z, 1.0)) {
+        glColor3f(1.0, 0.0, 0.0);
+    } else {
+        glColor3f(0.0, 0.0, 0.0);
+    }
+    
+    //draw ray
+    glDisable(GL_LIGHTING);
+    glBegin(GL_LINES);
+    glVertex3f(rayStart.x, rayStart.y, rayStart.z);
+    glVertex3f(rayStart.x, rayStart.y, rayStart.z+100);
+    glEnd();
+    glEnable(GL_LIGHTING);
     glCallList(model);
+    glColor3f(0.0, 0.0, 0.0);
 }
 
 int main(int argc, const char * argv[]) {
@@ -68,6 +84,7 @@ int main(int argc, const char * argv[]) {
     bool running = true;
     Uint32 start;
     SDL_Event event;
+    bool b[4] = {0, 0, 0, 0};
     
     while (running) {
         start = SDL_GetTicks();
@@ -90,10 +107,47 @@ int main(int argc, const char * argv[]) {
                         case SDLK_ESCAPE:
                             running = false;
                             break;
+                        case SDLK_UP:
+                            b[0] = 1;
+                            break;
+                        case SDLK_RIGHT:
+                            b[1] = 1;
+                            break;
+                        case SDLK_DOWN:
+                            b[2] = 1;
+                            break;
+                        case SDLK_LEFT:
+                            b[3] = 1;
+                            break;
+                    }
+                    break;
+                case SDL_KEYUP:
+                    switch (event.key.keysym.sym) {
+                        case SDLK_UP:
+                            b[0] = 0;
+                            break;
+                        case SDLK_RIGHT:
+                            b[1] = 0;
+                            break;
+                        case SDLK_DOWN:
+                            b[2] = 0;
+                            break;
+                        case SDLK_LEFT:
+                            b[3] = 0;
+                            break;
                     }
                     break;
             }
         }
+        
+        if (b[0])
+            rayStart.y += 0.3;
+        if (b[1])
+            rayStart.x += 0.3;
+        if (b[2])
+            rayStart.y -= 0.3;
+        if (b[3])
+            rayStart.x -= 0.3;
         
         display();
         SDL_GL_SwapWindow(screen);

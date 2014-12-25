@@ -7,15 +7,23 @@
 #include <iostream>
 #include <cmath>
 
-void drawCube(float size);
-void drawSkybox(float size);
-void initSkybox();
-void killSkybox();
-void lockCamera();
+//camera
 void moveCamera(float, float);
 void moveCameraUp(float, float);
-void control(float,float,bool);
+void lockCamera();
 void updateCamera();
+void control(float,float,bool);
+
+//textures
 unsigned int loadTexture(const char* filename);
+
+//skybox
+void initSkybox();
+void killSkybox();
+void drawSkybox(float size);
+void drawCube(float size);
+
+//collision
+bool raySphere(float xc, float yc, float zc, float xd, float yd, float zd, float xs, float ys, float zs, float r);
 
 #endif /* defined(__tuts3D__functions__) */
