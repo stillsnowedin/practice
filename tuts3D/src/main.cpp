@@ -19,6 +19,10 @@ bool mouseIn = false;
 unsigned int model;
 coordinate sphereCenter(0.0, 0.0, 0.0);
 coordinate rayStart(0.0, 0.0, -5.0);
+coordinate p1(-5.0, 5.0, -5.0);
+coordinate p2(5.0, 5.0, -5.0);
+coordinate p3(5.0, -5.0, -5.0);
+coordinate p4(-5.0, -5.0, -5.0);
 
 void init() {
     glClearColor(0.3, 0.3, 0.3, 1.0f);
@@ -54,9 +58,15 @@ void display() {
     //glTranslatef(0.0, 0.0, -5.0);
     //glRotatef(angle, 1.0, 1.0, 1.0);
     
-    if (raySphere(sphereCenter.x, sphereCenter.y, sphereCenter.z, 0.0, 0.0, 1.0, rayStart.x, rayStart.y, rayStart.z, 1.0)) {
+    /*if (raySphere(sphereCenter.x, sphereCenter.y, sphereCenter.z, 0.0, 0.0, 1.0, rayStart.x, rayStart.y, rayStart.z, 1.0)) {
         glColor3f(1.0, 0.0, 0.0);
     } else {
+        glColor3f(0.0, 0.0, 0.0);
+    }*/
+    
+    if (rayPlane(0.0, 0.0, 1.0, 0.0, 0.0, -1.0, rayStart.x, rayStart.y, rayStart.z, p1, p2, p3, p4))
+        glColor3f(1.0, 0.0, 0.0);
+    else {
         glColor3f(0.0, 0.0, 0.0);
     }
     
@@ -66,9 +76,17 @@ void display() {
     glVertex3f(rayStart.x, rayStart.y, rayStart.z);
     glVertex3f(rayStart.x, rayStart.y, rayStart.z+100);
     glEnd();
+    //draw plane
+    glBegin(GL_QUADS);
+    glVertex3f(p1.x, p1.y, p1.z);
+    glVertex3f(p2.x, p2.y, p2.z);
+    glVertex3f(p3.x, p3.y, p3.z);
+    glVertex3f(p4.x, p4.y, p4.z);
+    glEnd();
     glEnable(GL_LIGHTING);
+    
     glCallList(model);
-    glColor3f(0.0, 0.0, 0.0);
+    glColor3f(1.0, 1.0, 1.0);
 }
 
 int main(int argc, const char * argv[]) {

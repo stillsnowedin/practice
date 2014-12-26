@@ -6,6 +6,7 @@
 #include <OpenGL/gl3.h>
 #include <iostream>
 #include <cmath>
+#include "objLoader.h"
 
 //camera
 void moveCamera(float, float);
@@ -25,5 +26,7 @@ void drawCube(float size);
 
 //collision
 bool raySphere(float xc, float yc, float zc, float xd, float yd, float zd, float xs, float ys, float zs, float r);
+bool rayPlane(float xn, float yn, float zn, float xd, float yd, float zd, float xs, float ys, float zs, coordinate p1, coordinate p2, coordinate p3, coordinate p4);
+float triangleArea(coordinate p1, coordinate p2, coordinate p3);
 
 #endif /* defined(__tuts3D__functions__) */

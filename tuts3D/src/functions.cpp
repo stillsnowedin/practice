@@ -248,3 +248,32 @@ bool raySphere(float xc, float yc, float zc, float xd, float yd, float zd, float
         return true;
     }
 }
+
+bool rayPlane(float xn, float yn, float zn, float xd, float yd, float zd, float xs, float ys, float zs, coordinate p1, coordinate p2, coordinate p3, coordinate p4) {
+    float a = xd*xn + yd*yn + zd*zn;
+    if (a == 0)
+        return false;
+    
+    float t = (p1.x*xn + p1.y*yn + p1.z*zn - xn*xs - yn*ys - zn*zs) / a;
+    if (t < 0)
+        return false;
+    
+    float x = xs + t*xd;
+    float y = ys + t*yd;
+    float z = zs + t*zd;
+    coordinate cp(x, y, z);
+    if (abs(triangleArea(p1, p3, p4)-triangleArea(p1, p4, cp)-triangleArea(p1, p3, cp)-triangleArea(p3, p4, cp)) < 0.00001 ||
+        abs(triangleArea(p1, p2, p3)-triangleArea(p1, p2, cp)-triangleArea(p1, p3, cp)-triangleArea(p2, p3, cp)) < 0.00001)
+        return true;
+    else
+        return false;
+}
+
+float triangleArea(coordinate p1, coordinate p2, coordinate p3) {
+    float a = sqrt((p2.x-p1.x)*(p2.x-p1.x)+(p2.y-p1.y)*(p2.y-p1.y)+(p2.z-p1.z)*(p2.z-p1.z));
+    float b = sqrt((p3.x-p2.x)*(p3.x-p2.x)+(p3.y-p2.y)*(p3.y-p2.y)+(p3.z-p2.z)*(p3.z-p2.z));
+    float c = sqrt((p3.x-p1.x)*(p3.x-p1.x)+(p3.y-p1.y)*(p3.y-p1.y)+(p3.z-p1.z)*(p3.z-p1.z));
+    
+    float s = (a+b+c) / 2;
+    return sqrt(s*(s-a)*(s-b)*(s-c));
+}
