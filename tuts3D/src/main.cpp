@@ -58,15 +58,9 @@ void display() {
     //glTranslatef(0.0, 0.0, -5.0);
     //glRotatef(angle, 1.0, 1.0, 1.0);
     
-    /*if (raySphere(sphereCenter.x, sphereCenter.y, sphereCenter.z, 0.0, 0.0, 1.0, rayStart.x, rayStart.y, rayStart.z, 1.0)) {
-        glColor3f(1.0, 0.0, 0.0);
+    if (raySphere(sphereCenter.x, sphereCenter.y, sphereCenter.z, 0.0, 0.0, 1.0, rayStart.x, rayStart.y, rayStart.z, 1.0)) {
+        glColor3f(0.0, 1.0, 0.0);
     } else {
-        glColor3f(0.0, 0.0, 0.0);
-    }*/
-    
-    if (rayPlane(0.0, 0.0, 1.0, 0.0, 0.0, -1.0, rayStart.x, rayStart.y, rayStart.z, p1, p2, p3, p4))
-        glColor3f(1.0, 0.0, 0.0);
-    else {
         glColor3f(0.0, 0.0, 0.0);
     }
     
@@ -76,6 +70,12 @@ void display() {
     glVertex3f(rayStart.x, rayStart.y, rayStart.z);
     glVertex3f(rayStart.x, rayStart.y, rayStart.z+100);
     glEnd();
+    
+    if (rayPlane(0.0, 0.0, 1.0, 0.0, 0.0, -1.0, rayStart.x, rayStart.y, rayStart.z, p1, p2, p3, p4))
+        glColor3f(1.0, 0.0, 0.0);
+    else {
+        glColor3f(0.0, 0.0, 0.0);
+    }
     //draw plane
     glBegin(GL_QUADS);
     glVertex3f(p1.x, p1.y, p1.z);
@@ -87,6 +87,13 @@ void display() {
     
     glCallList(model);
     glColor3f(1.0, 1.0, 1.0);
+    
+    coordinate camPos = cameraPosition();
+    if (sphereSphere(camPos, 2.0, coordinate(0.0, 0.0, 0.0), 1.0))
+        std::cout << "collision" << std::endl;
+    if (spherePlane(camPos, 2.0, coordinate(0.0, 0.0, 1.0), p1, p2, p3, p4))
+        std::cout << "sphere plane collision" << std::endl;
+    moveTo(camPos);
 }
 
 int main(int argc, const char * argv[]) {
@@ -115,6 +122,8 @@ int main(int argc, const char * argv[]) {
                 case SDL_MOUSEBUTTONDOWN:
                     mouseIn = true;
                     SDL_SetRelativeMouseMode(SDL_TRUE);
+                    int tmpx, tmpy;
+                    SDL_GetRelativeMouseState(&tmpx, &tmpy);
                     break;
                 case SDL_KEYDOWN:
                     switch (event.key.keysym.sym) {
@@ -169,7 +178,6 @@ int main(int argc, const char * argv[]) {
         
         display();
         SDL_GL_SwapWindow(screen);
-        //SDL_WarpMouseInWindow(screen, resW/2, resH/2);
         
         angle += 0.5;
         if (angle > 360)

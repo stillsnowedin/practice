@@ -39,12 +39,12 @@ void updateCamera() {
 
 void control(float moveVelocity, float mouseVelocity, bool mouseIn) {
     if (mouseIn) {
-        int midX = 512;
-        int midY = 384;
-        int tmpx, tmpy;
-        SDL_GetMouseState(&tmpx, &tmpy);
-        camYaw += mouseVelocity * (midX - tmpx);
-        camPitch += mouseVelocity * (midY - tmpy);
+        int dx = 512, dy = 384;
+        SDL_GetRelativeMouseState(&dx, &dy);
+        //if (dx != 0 || dy != 0)
+        //    std::cout << "mouse loc (" << dx << ", " << dy << ")" << std::endl;
+        camYaw -= mouseVelocity * dx;
+        camPitch -= mouseVelocity * dy;
         lockCamera();
         
         const Uint8* keys = SDL_GetKeyboardState(NULL);
@@ -67,8 +67,16 @@ void control(float moveVelocity, float mouseVelocity, bool mouseIn) {
     
     glRotatef(-camPitch, 1.0, 0.0, 0.0);
     glRotatef(-camYaw, 0.0, 1.0, 0.0);
-    camPitch = 0;
-    camYaw = 0;
+}
+
+void moveTo(coordinate c) {
+    camX = c.x;
+    camY = c.y;
+    camZ = c.z;
+}
+
+coordinate cameraPosition() {
+    return coordinate(camX, camY, camZ);
 }
 
 unsigned int loadTexture(const char* filename) {
@@ -237,19 +245,26 @@ void drawCube(float size) {
     glEnd();
 }
 
-bool raySphere(float xc, float yc, float zc, float xd, float yd, float zd, float xs, float ys, float zs, float r) {
+bool raySphere(float xc, float yc, float zc, float xd, float yd, float zd, float xs, float ys, float zs, float r, float* dist, coordinate* point) {
     float b = 2 * (xd*(xs-xc) + yd*(ys-yc) + zd*(zs-zc));
     float c = xs*xs - 2*xs*xc + xc*xc + ys*ys - 2*ys*yc + yc*yc + zs*zs - 2*zs*zc + zc*zc - r*r;
     float disc = b*b - 4*c;
     
-    if (disc < 0) {
+    if (disc < 0)
         return false;
-    } else {
-        return true;
+    
+    if (dist != NULL) {
+        (*dist) = (-b + disc) / 2;
+        if (point != NULL) {
+            point->x = xs+(*dist)*xd;
+            point->y = ys+(*dist)*yd;
+            point->z = zs+(*dist)*zd;
+        }
     }
+    return true;
 }
 
-bool rayPlane(float xn, float yn, float zn, float xd, float yd, float zd, float xs, float ys, float zs, coordinate p1, coordinate p2, coordinate p3, coordinate p4) {
+bool rayPlane(float xn, float yn, float zn, float xd, float yd, float zd, float xs, float ys, float zs, coordinate p1, coordinate p2, coordinate p3, coordinate p4, float* dist, coordinate* point) {
     float a = xd*xn + yd*yn + zd*zn;
     if (a == 0)
         return false;
@@ -263,10 +278,56 @@ bool rayPlane(float xn, float yn, float zn, float xd, float yd, float zd, float 
     float z = zs + t*zd;
     coordinate cp(x, y, z);
     if (abs(triangleArea(p1, p3, p4)-triangleArea(p1, p4, cp)-triangleArea(p1, p3, cp)-triangleArea(p3, p4, cp)) < 0.00001 ||
-        abs(triangleArea(p1, p2, p3)-triangleArea(p1, p2, cp)-triangleArea(p1, p3, cp)-triangleArea(p2, p3, cp)) < 0.00001)
+        abs(triangleArea(p1, p2, p3)-triangleArea(p1, p2, cp)-triangleArea(p2, p3, cp)-triangleArea(p1, p3, cp)) < 0.00001) {
+        if (dist != NULL) {
+            (*dist) = t;
+            if (point != NULL) {
+                point->x = x;
+                point->y = y;
+                point->z = z;
+            }
+        }
         return true;
-    else
+    } else {
         return false;
+    }
+}
+
+bool sphereSphere(coordinate& c1, float r1, coordinate c2, float r2) {
+    float dist = pointDistance(c1, c2);
+    if (dist <= ((r1+r2)*(r1*r2))) { //slightly more efficient to square a value than to take the square root
+        float len = sqrt(dist);
+        float a = len - (r1+r2);
+        coordinate vec(c2.x-c1.x, c2.y-c1.y, c2.z-c1.z);
+        vec.x /= len;
+        vec.y /= len;
+        vec.z /= len;
+        c1.x = c1.x + vec.x*a;
+        c1.y = c1.y + vec.y*a;
+        c1.z = c1.z + vec.z*a;
+        return true;
+    }
+    return false;
+}
+
+bool spherePlane(coordinate& sp, float r, coordinate vn, coordinate p1, coordinate p2, coordinate p3, coordinate p4) {
+    float dist1 = 0, dist2 = 0;
+    if (rayPlane(-vn.x, -vn.y, -vn.z, sp.x, sp.y, sp.z, vn.x, vn.y, vn.z, p1, p2, p3, p4, &dist1) ||
+        rayPlane(vn.x, vn.y, vn.z, sp.x, sp.y, sp.z, -vn.x, -vn.y, -vn.z, p1, p2, p3, p4, &dist2)) {
+        if (dist1 > r || dist2 > r)
+            return false;
+        if (dist1 > 0) {
+            sp.x = sp.x - vn.x*(r-dist1);
+            sp.y = sp.y - vn.y*(r-dist1);
+            sp.z = sp.z - vn.z*(r-dist1);
+        } else {
+            sp.x = sp.x + vn.x*(r-dist2);
+            sp.y = sp.y + vn.y*(r-dist2);
+            sp.z = sp.z + vn.z*(r-dist2);
+        }
+        return true;
+    }
+    return false;
 }
 
 float triangleArea(coordinate p1, coordinate p2, coordinate p3) {
@@ -276,4 +337,9 @@ float triangleArea(coordinate p1, coordinate p2, coordinate p3) {
     
     float s = (a+b+c) / 2;
     return sqrt(s*(s-a)*(s-b)*(s-c));
+}
+
+float pointDistance(coordinate p1, coordinate p2) {
+    coordinate vec(p2.x-p1.x, p2.y-p1.y, p2.z-p1.z);
+    return (vec.x*vec.x + vec.y*vec.y + vec.z*vec.z);
 }
