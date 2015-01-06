@@ -10,6 +10,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "objLoader.h"
 #include "functions.h"
+#include "text.h"
 
 float resW = 1024.0f;
 float resH = 768.0f;
@@ -23,6 +24,7 @@ coordinate p1(-5.0, 5.0, -5.0);
 coordinate p2(5.0, 5.0, -5.0);
 coordinate p3(5.0, -5.0, -5.0);
 coordinate p4(-5.0, -5.0, -5.0);
+text* tex;
 
 void init() {
     glClearColor(0.3, 0.3, 0.3, 1.0f);
@@ -40,6 +42,15 @@ void init() {
     
     float dif[] = {1.0, 1.0, 1.0, 1.0};
     glLightfv(GL_LIGHT0, GL_DIFFUSE, dif);
+    
+    std::vector<unsigned int> chars;
+    char tmp[20];
+    for (int i=0; i<26; i++) {
+        sprintf(tmp, "fonts/%d.obj", i);
+        unsigned int tmp2 = obj.loadObject(tmp);
+        chars.push_back(tmp2);
+    }
+    tex = new text(0.9, 0.8, chars);
     
     model = obj.loadObject("assets/sphere.obj");
     initSkybox();
@@ -87,6 +98,8 @@ void display() {
     
     glCallList(model);
     glColor3f(1.0, 1.0, 1.0);
+    
+    tex->drawText(coordinate(10.0, 0.0, 0.0), coordinate(angle, 0.0, 0.0), "HELLO WORLD\nFROM\nME");
     
     coordinate camPos = cameraPosition();
     if (sphereSphere(camPos, 2.0, coordinate(0.0, 0.0, 0.0), 1.0))

@@ -16,13 +16,14 @@ objLoader::~objLoader() {
     }
 }
 
-int objLoader::loadObject(const char* filename) {
-    std::ifstream in(filename);
+int objLoader::loadObject(std::string filename) {
+    std::ifstream in(filename.c_str());
     if (!in.is_open()) {
         std::cout << "Could not open " << filename << std::endl;
         return -1;
     }
     
+    std::string path = filename.substr(0, (filename.find_last_of('/') != std::string::npos ? filename.find_last_of('/')+1 : 0));
     char buf[256];
     int curmat = 0;
     while (!in.eof()) {
@@ -80,7 +81,8 @@ int objLoader::loadObject(const char* filename) {
         } else if ((*coords[k])[0] == 'm' && (*coords[k])[1] == 't' && (*coords[k])[2] == 'l') {
             char filen[200];
             sscanf(coords[k]->c_str(), "mtllib %s", filen);
-            std::ifstream mtlin(filen);
+            std::string filepath = path + filen;
+            std::ifstream mtlin(filepath.c_str());
             if (!mtlin.is_open()) {
                 std::cout << "Couldn't open " << filen << std::endl;
                 clean();

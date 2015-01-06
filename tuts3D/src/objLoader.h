@@ -87,7 +87,7 @@ class objLoader {
 public:
     objLoader();
     ~objLoader();
-    int loadObject(const char* filename);
+    int loadObject(std::string filename);
     
 private:
     std::vector<std::string*> coords;
