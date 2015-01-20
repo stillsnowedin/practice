@@ -1,5 +1,8 @@
 practice.xcworkspace/**
 tuts/tuts.xcodeproj/**
 tuts3D/tuts3D.xcodeproj/**
+shooter/shooter.xcodeproj/**
+shooter/lib/*
 UserInterfaceState.xcuserstate
 broken/*
+gp3d/*

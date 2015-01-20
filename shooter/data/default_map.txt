@@ -1,0 +1,1 @@
+file ../../media/map_zastavka_v13.pk3 maps/zastavka.bsp

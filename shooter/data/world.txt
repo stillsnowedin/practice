@@ -1,0 +1,7 @@
+map default_map 0,-1000,0 0,0,0
+player default_player 0,100,0 0,0,0
+zombie default_zombie 0,0,20 0,0,20
+item item_policecar 50,-975,0, 0,90,0
+item item_hang1   1000,-975,200 0,270,0
+item item_hang2   900,-975,200 0,270,0
+item item_hang3   1200,-975,200 0,270,0
