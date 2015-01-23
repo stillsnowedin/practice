@@ -58,6 +58,15 @@ void Game::run() {
         m_time += 0.01f;
         m_camera.update();
         
+        for (int i = 0; i < m_bullets.size();) {
+            if (m_bullets[i].update()) {
+                m_bullets[i] = m_bullets.back();
+                m_bullets.pop_back();
+            } else {
+                i++;
+            }
+        }
+        
         draw();
         
         float fps = m_fpsLimiter.end();
@@ -120,6 +129,11 @@ void Game::processInput() {
     if (m_inputManager.isKeyPressed(SDL_BUTTON_LEFT)) {
         glm::vec2 mouseLoc = m_camera.convertScreenToWorld(m_inputManager.getMouseLoc());
         std::cout << mouseLoc.x << ", " << mouseLoc.y << std::endl;
+        glm::vec2 playerLoc(0.0f);
+        glm::vec2 direction = mouseLoc - playerLoc;
+        direction = glm::normalize(direction);
+        
+        m_bullets.emplace_back(1.0f, playerLoc, direction, 1000);
     }
 }
 
@@ -142,6 +156,10 @@ void Game::draw() {
 //    }
     
     m_spriteBatch.begin();
+    
+    for (int i = 0; i < m_bullets.size(); i++) {
+        m_bullets[i].draw(m_spriteBatch);
+    }
     
     glm::vec4 pos(0.0f, 0.0f, 50.0f, 50.0f);
     glm::vec4 uv(0.0f, 0.0f, 1.0f, 1.0f);

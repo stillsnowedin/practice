@@ -32,6 +32,8 @@ void Camera2D::update() {
 }
 
 glm::vec2 Camera2D::convertScreenToWorld(glm::vec2 screenLoc) {
+    //invert y direction
+    screenLoc.y = m_screenHeight - screenLoc.y;
     //center the screen on 0,0
     screenLoc -= glm::vec2(m_screenWidth/2, m_screenHeight/2);
     //scale the loc
