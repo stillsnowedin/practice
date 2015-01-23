@@ -43,10 +43,14 @@ int Window::create(std::string name, int width, int height, unsigned int current
     //OpenGL version
     printf("*** OpenGL Version: %s ***\n", glGetString(GL_VERSION));
     
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
     
     //VSYNC
     SDL_GL_SetSwapInterval(0);
+    
+    //enable alpha blending
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
     return 0;
 }
