@@ -19,7 +19,7 @@ GLTexture TextureCache::getTexture(std::string key) {
         std::cout << "Loaded new texture " << key << "!\n";
         return newTexture;
     } else {
-        std::cout << "Loaded cached texture " << key << "!\n";
+        //std::cout << "Loaded cached texture " << key << "!\n";
         return mit->second;
     }
 }

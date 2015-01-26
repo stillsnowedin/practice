@@ -1,26 +1,36 @@
 #include "Game.h"
 
 Game::Game() {
-    m_screenWidth = 640;
-    m_screenHeight = 480;
-    m_gameState = GameState::PLAY;
+    m_screenWidth = 1024;
+    m_screenHeight = 768;
+    m_gameState = GameState::IDLE;
     m_time = 0.0f;
     m_uniformID = 0;
     m_maxFPS = 60.0f;
-    
     m_camera.init(m_screenWidth, m_screenHeight);
+    m_player = nullptr;
 }
 
 Game::~Game() {
-    
+    for (int i=0; i < m_maps.size(); i++) {
+        std::cout << "deleting map " << i << std::endl;
+        delete m_maps[i];
+    }
+    for (int i=0; i < m_humans.size(); i++) {
+        std::cout << "deleting human " << i << std::endl;
+        delete m_humans[i];
+    }
+    for (int i = 0; i < m_zombies.size(); i++) {
+        std::cout << "deleting zombie " << i << std::endl;
+        delete m_zombies[i];
+    }
 }
 
 void Game::init() {
     setupWindow();
     setupShaders();
-    m_spriteBatch.init();
+    setupMap();
     m_fpsLimiter.init(m_maxFPS);
-    //setupDisplayObjects();
     run();
 }
 
@@ -40,15 +50,26 @@ void Game::setupShaders() {
     m_colorProgram.addAttribute("vertexColor");
     m_colorProgram.addAttribute("vertexUV");
     m_colorProgram.linkShaders();
+    
+    m_spriteBatch.init(m_colorProgram);
 }
 
-//void Game::setupDisplayObjects() {
-//    _sprites.push_back(new Sprite());
-//    _sprites.back()->init(0.0f, 0.0f, _screenWidth/2, _screenWidth/2, "resources/jimmyJump_pack/PNG/AngryCloud.png");
-//    
-//    _sprites.push_back(new Sprite());
-//    _sprites.back()->init(_screenWidth/2, 0.0f, _screenWidth/2, _screenWidth/2, "resources/jimmyJump_pack/PNG/CharacterRight_Standing.png");
-//}
+void Game::setupMap() {
+    m_gameState = GameState::PLAY;
+    m_maps.push_back(new Map("maps/map_1.txt"));
+    m_currentMap = 0;
+    m_maps[m_currentMap]->draw(m_spriteBatch);
+    
+    m_player = new Player();
+    m_player->init(5.0f, m_maps[m_currentMap]->getPlayerLoc());
+    m_humans.push_back(m_player);
+    
+    std::vector<glm::vec2> zombieLocs = m_maps[m_currentMap]->getZombieLocs();
+    for (int i=0; i<zombieLocs.size(); i++) {
+        m_zombies.push_back(new Zombie());
+        m_zombies.back()->init(0.5f, zombieLocs[i]);
+    }
+}
 
 void Game::run() {
     while (m_gameState != GameState::EXIT) {
@@ -56,22 +77,27 @@ void Game::run() {
         
         processInput();
         m_time += 0.01f;
+        
+        //update player
+        m_player->getCommands(m_inputManager);
+        //update camera
         m_camera.update();
         
-        for (int i = 0; i < m_bullets.size();) {
-            if (m_bullets[i].update()) {
-                m_bullets[i] = m_bullets.back();
-                m_bullets.pop_back();
-            } else {
-                i++;
-            }
+        //update other actors
+        for (int i=0; i<m_humans.size(); i++) {
+            m_humans[i]->update();
         }
+        for (int i=0; i<m_humans.size(); i++) {
+            m_humans[i]->update();
+        }
+        
+        checkCollision();
         
         draw();
         
         float fps = m_fpsLimiter.end();
         
-        //print the FPS
+//        //print the FPS
 //        static int frameCounter = 0;
 //        frameCounter++;
 //        if (frameCounter == 10) {
@@ -83,9 +109,6 @@ void Game::run() {
 
 void Game::processInput() {
     SDL_Event input;
-    
-    const float CAMERA_SPEED = 10.0f;
-    const float SCALE_SPEED = 0.1f;
     
     //listen for input
     while (SDL_PollEvent(&input)) {
@@ -111,30 +134,35 @@ void Game::processInput() {
                 break;
         }
     }
-    
-    //process the input
-    if (m_inputManager.isKeyPressed(SDLK_w))
-        m_camera.setPosition(m_camera.getPosition() + glm::vec2(0.0, -CAMERA_SPEED));
-    if (m_inputManager.isKeyPressed(SDLK_s))
-        m_camera.setPosition(m_camera.getPosition() + glm::vec2(0.0, CAMERA_SPEED));
-    if (m_inputManager.isKeyPressed(SDLK_a))
-        m_camera.setPosition(m_camera.getPosition() + glm::vec2(CAMERA_SPEED, 0.0));
-    if (m_inputManager.isKeyPressed(SDLK_d))
-        m_camera.setPosition(m_camera.getPosition() + glm::vec2(-CAMERA_SPEED, 0.0));
-    if (m_inputManager.isKeyPressed(SDLK_q))
-        m_camera.setScale(m_camera.getScale() + SCALE_SPEED);
-    if (m_inputManager.isKeyPressed(SDLK_e))
-        m_camera.setScale(m_camera.getScale() - SCALE_SPEED);
+
+    m_camera.setPosition(m_player->getPosition());
     
     if (m_inputManager.isKeyPressed(SDL_BUTTON_LEFT)) {
         glm::vec2 mouseLoc = m_camera.convertScreenToWorld(m_inputManager.getMouseLoc());
         std::cout << mouseLoc.x << ", " << mouseLoc.y << std::endl;
-        glm::vec2 playerLoc(0.0f);
-        glm::vec2 direction = mouseLoc - playerLoc;
-        direction = glm::normalize(direction);
-        
-        m_bullets.emplace_back(1.0f, playerLoc, direction, 1000);
     }
+}
+
+void Game::checkCollision() {
+    glm::vec2 playerPosition = m_player->getPosition();
+    const float PLAYER_WIDTH = m_player->getWidth();
+    const float PLAYER_HEIGHT = m_player->getHeight();
+    glm::vec2 corners[4];
+    corners[0] = glm::vec2(playerPosition.x, playerPosition.y);
+    corners[1] = glm::vec2(playerPosition.x + PLAYER_WIDTH, playerPosition.y);
+    corners[2] = glm::vec2(playerPosition.x, playerPosition.y + PLAYER_HEIGHT);
+    corners[3] = glm::vec2(playerPosition.x + PLAYER_WIDTH, playerPosition.y + PLAYER_HEIGHT);
+    
+    //check walls
+    for (int i=0; i<4; i++) {
+        if (m_maps[m_currentMap]->isTileCollidable(corners[i])) {
+            m_player->setPosition(m_maps[m_currentMap]->collisionOffset(corners[i], playerPosition, PLAYER_WIDTH, PLAYER_HEIGHT));
+            break;
+        }
+    }
+    
+    //check other actors
+    
 }
 
 void Game::draw() {
@@ -151,30 +179,18 @@ void Game::draw() {
     glm::mat4 cameraMatrix = m_camera.getCameraMatrix();
     glUniformMatrix4fv(pLocation, 1, GL_FALSE, &cameraMatrix[0][0]);
     
-//    for (int i = 0; i < _sprites.size(); i++) {
-//        _sprites[i]->draw();
-//    }
-    
     m_spriteBatch.begin();
-    
-    for (int i = 0; i < m_bullets.size(); i++) {
-        m_bullets[i].draw(m_spriteBatch);
+    m_maps[m_currentMap]->draw(m_spriteBatch);
+    m_player->draw(m_spriteBatch, "images/fantasy_tileset/PNG/fantasy-tileset-02-18.png");
+    for (int h=1; h<m_humans.size(); h++) {
+        m_humans[h]->draw(m_spriteBatch, "images/fantasy_tileset/PNG/fantasy-tileset-05-18.png");
     }
-    
-    glm::vec4 pos(0.0f, 0.0f, 50.0f, 50.0f);
-    glm::vec4 uv(0.0f, 0.0f, 1.0f, 1.0f);
-    static GLTexture texture = ResourceManager::getTexture("resources/jimmyJump_pack/PNG/AngryCloud.png");
-    Color color;
-    color.r = 255;
-    color.g = 255;
-    color.b = 255;
-    color.a = 255;
-    
-    m_spriteBatch.draw(pos, uv, texture.id, 0.0f, color);
-    //m_spriteBatch.draw(pos + glm::vec4(50, 0, 0, 0), uv, texture.id, 0.0f, color);
-    
+    for (int z=1; z<m_zombies.size(); z++) {
+        m_zombies[z]->draw(m_spriteBatch, "images/fantasy_tileset/PNG/fantasy-tileset-01-22.png");
+    }
     m_spriteBatch.end();
     m_spriteBatch.renderBatch();
+    
     m_colorProgram.unuse();
     
     m_window.swapBuffer();

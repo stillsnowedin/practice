@@ -5,7 +5,7 @@
 #include <vector>
 #include <SDL2/SDL_events.h>
 #include <CoreFoundation/CoreFoundation.h>
-#include "Sprite.h"
+#include <OpenGL/gl3.h>
 #include "GLTexture.h"
 #include "ImageLoader.h"
 #include "GLSLProgram.h"
@@ -14,9 +14,11 @@
 #include "SpriteBatch.h"
 #include "InputManager.h"
 #include "Timing.h"
-#include "Bullet.h"
+#include "Map.h"
+#include "Player.h"
+#include "Zombie.h"
 
-enum class GameState { PLAY, EXIT };
+enum class GameState { IDLE, PLAY, EXIT };
 
 class Game {
 public:
@@ -29,7 +31,6 @@ private:
     int m_screenWidth;
     int m_screenHeight;
     GameState m_gameState;
-    //std::vector<Sprite*> m_sprites;
     GLSLProgram m_colorProgram;
     float m_time;
     int m_uniformID;
@@ -38,13 +39,19 @@ private:
     SpriteBatch m_spriteBatch;
     InputManager m_inputManager;
     FPSLimiter m_fpsLimiter;
-    std::vector<Bullet> m_bullets;
+    std::vector<Map*> m_maps;
+    std::vector<Human*> m_humans;
+    std::vector<Zombie*> m_zombies;
+    Player* m_player;
+    int m_currentMap;
     
     void setupWindow();
     void setupShaders();
-    //void setupDisplayObjects();
+    void setupMap();
     void run();
     void processInput();
+    void checkCollision();
     void draw();
+    
 };
 #endif /* defined(__tuts__Game__) */

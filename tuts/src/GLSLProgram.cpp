@@ -121,3 +121,11 @@ GLint GLSLProgram::getUniformLocation(const std::string& uniformName) {
     }
     return location;
 }
+
+GLint GLSLProgram::getAttribLocation(const std::string& attribName) {
+    GLint location = glGetAttribLocation(_programID, attribName.c_str());
+    if (location == GL_INVALID_VALUE) {
+        fatalError("Uniform " + attribName + " not found in shader!");
+    }
+    return location;
+}
