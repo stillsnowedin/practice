@@ -48,6 +48,7 @@ private:
     void setupWindow();
     void setupShaders();
     void setupMap();
+    void setupActors();
     void run();
     void processInput();
     void checkCollision();

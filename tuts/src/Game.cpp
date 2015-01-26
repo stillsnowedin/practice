@@ -13,15 +13,12 @@ Game::Game() {
 
 Game::~Game() {
     for (int i=0; i < m_maps.size(); i++) {
-        std::cout << "deleting map " << i << std::endl;
         delete m_maps[i];
     }
     for (int i=0; i < m_humans.size(); i++) {
-        std::cout << "deleting human " << i << std::endl;
         delete m_humans[i];
     }
     for (int i = 0; i < m_zombies.size(); i++) {
-        std::cout << "deleting zombie " << i << std::endl;
         delete m_zombies[i];
     }
 }
@@ -30,6 +27,7 @@ void Game::init() {
     setupWindow();
     setupShaders();
     setupMap();
+    setupActors();
     m_fpsLimiter.init(m_maxFPS);
     run();
 }
@@ -59,15 +57,24 @@ void Game::setupMap() {
     m_maps.push_back(new Map("maps/map_1.txt"));
     m_currentMap = 0;
     m_maps[m_currentMap]->draw(m_spriteBatch);
-    
+}
+
+void Game::setupActors() {
     m_player = new Player();
     m_player->init(5.0f, m_maps[m_currentMap]->getPlayerLoc());
     m_humans.push_back(m_player);
     
     std::vector<glm::vec2> zombieLocs = m_maps[m_currentMap]->getZombieLocs();
-    for (int i=0; i<zombieLocs.size(); i++) {
+    for (int z=0; z<zombieLocs.size(); z++) {
         m_zombies.push_back(new Zombie());
-        m_zombies.back()->init(0.5f, zombieLocs[i]);
+        m_zombies.back()->init(0.5f, zombieLocs[z]);
+    }
+    
+    int numHumans = m_maps[m_currentMap]->getNumHumans();
+    std::cout << "num humans: " << numHumans << std::endl;
+    for (int h=0; h<numHumans; h++) {
+        m_humans.push_back(new Human());
+        m_humans.back()->init(0.5f, m_maps[m_currentMap]->getRandomTile());
     }
 }
 
@@ -97,13 +104,13 @@ void Game::run() {
         
         float fps = m_fpsLimiter.end();
         
-//        //print the FPS
-//        static int frameCounter = 0;
-//        frameCounter++;
-//        if (frameCounter == 10) {
-//            std::cout << fps << std::endl;
-//            frameCounter = 0;
-//        }
+        //print the FPS
+        static int frameCounter = 0;
+        frameCounter++;
+        if (frameCounter == 1000) {
+            std::cout << fps << std::endl;
+            frameCounter = 0;
+        }
     }
 }
 
@@ -144,23 +151,25 @@ void Game::processInput() {
 }
 
 void Game::checkCollision() {
-    glm::vec2 playerPosition = m_player->getPosition();
-    const float PLAYER_WIDTH = m_player->getWidth();
-    const float PLAYER_HEIGHT = m_player->getHeight();
-    glm::vec2 corners[4];
-    corners[0] = glm::vec2(playerPosition.x, playerPosition.y);
-    corners[1] = glm::vec2(playerPosition.x + PLAYER_WIDTH, playerPosition.y);
-    corners[2] = glm::vec2(playerPosition.x, playerPosition.y + PLAYER_HEIGHT);
-    corners[3] = glm::vec2(playerPosition.x + PLAYER_WIDTH, playerPosition.y + PLAYER_HEIGHT);
-    
-    //check walls
-    for (int i=0; i<4; i++) {
-        if (m_maps[m_currentMap]->isTileCollidable(corners[i])) {
-            m_player->setPosition(m_maps[m_currentMap]->collisionOffset(corners[i], playerPosition, PLAYER_WIDTH, PLAYER_HEIGHT));
-            break;
+    for (int h=0; h<m_humans.size(); h++) {
+        glm::vec2 humanPosition = m_humans[h]->getPosition();
+        const float HUMAN_WIDTH = m_humans[h]->getWidth();
+        const float HUMAN_HEIGHT = m_humans[h]->getHeight();
+        glm::vec2 corners[4];
+        corners[0] = glm::vec2(humanPosition.x, humanPosition.y);
+        corners[1] = glm::vec2(humanPosition.x + HUMAN_WIDTH, humanPosition.y);
+        corners[2] = glm::vec2(humanPosition.x, humanPosition.y + HUMAN_HEIGHT);
+        corners[3] = glm::vec2(humanPosition.x + HUMAN_WIDTH, humanPosition.y + HUMAN_HEIGHT);
+        
+        //check walls
+        for (int i=0; i<4; i++) {
+            if (m_maps[m_currentMap]->isTileCollidable(corners[i])) {
+                m_humans[h]->setPosition(m_maps[m_currentMap]->collisionOffset(corners[i], humanPosition, HUMAN_WIDTH, HUMAN_HEIGHT));
+                m_humans[h]->invertDirection();
+                break;
+            }
         }
     }
-    
     //check other actors
     
 }

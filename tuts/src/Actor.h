@@ -4,6 +4,9 @@
 #include <glm/glm.hpp>
 #include "GLTexture.h"
 #include "SpriteBatch.h"
+#include <random>
+#include <ctime>
+#include <glm/gtx/rotate_vector.hpp>
 
 class Zombie;
 class Human;
@@ -32,6 +35,7 @@ protected:
     glm::vec2 m_position;
     float m_speed;
     int m_health;
+    glm::vec2 m_direction;
     
 };
 

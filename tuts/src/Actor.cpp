@@ -12,6 +12,13 @@ Actor::~Actor() {
 void Actor::init(float speed, glm::vec2 position) {
     m_speed = speed;
     m_position = position;
+    
+    static std::mt19937 mt((uint)time(nullptr));
+    static std::uniform_real_distribution<float> rand(-1.0f, 1.0f);
+    m_direction = glm::vec2(rand(mt), rand(mt));
+    if (m_direction.length() == 0) m_direction = glm::vec2(1.0f, 0.0f);
+    m_direction = glm::normalize(m_direction);
+    
     std::cout << "Actor loc: " << position.x << ", " << position.y << std::endl;
 }
 

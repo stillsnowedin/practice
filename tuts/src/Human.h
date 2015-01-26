@@ -9,6 +9,10 @@ public:
     virtual ~Human();
     
     virtual void update();
+    void invertDirection();
+    
+private:
+    int m_frames = 0;
 };
 
 #endif /* defined(__tuts__Human__) */

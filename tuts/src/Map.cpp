@@ -3,6 +3,8 @@
 #include "ResourceManager.h"
 #include <fstream>
 #include <math.h>
+#include <ctime>
+#include <random>
 
 Map::Map(const std::string& filename) {
     std::ifstream fin;
@@ -14,6 +16,8 @@ Map::Map(const std::string& filename) {
     
     std::string line;
     fin >> line >> m_numHumans;
+    std::getline(fin, line);
+    
     while (std::getline(fin, line)) {
         m_mapData.push_back(line);
     }
@@ -123,16 +127,16 @@ glm::vec2 Map::collisionOffset(glm::vec2 tileLoc, glm::vec2 actorLoc, const floa
     glm::vec2 actorCenter = actorLoc + glm::vec2(ACTOR_WIDTH / 2.0f, ACTOR_HEIGHT / 2.0f);
     glm::vec2 distance = actorCenter - tileCenter;
     
-    std::cout << "Actor center: (" << actorCenter.x << ", " << actorCenter.y << ")" << std::endl;
-    std::cout << "Tile center: (" << tileCenter.x << ", " << tileCenter.y << ")" << std::endl;
-    std::cout << "distance: (" << distance.x << ", " << distance.y << ")" << std::endl;
+//    std::cout << "Actor center: (" << actorCenter.x << ", " << actorCenter.y << ")" << std::endl;
+//    std::cout << "Tile center: (" << tileCenter.x << ", " << tileCenter.y << ")" << std::endl;
+//    std::cout << "distance: (" << distance.x << ", " << distance.y << ")" << std::endl;
     
     const float MIN_X_DISTANCE = ACTOR_WIDTH / 2.0f + TILE_WIDTH / 2.0f;
     const float MIN_Y_DISTANCE = ACTOR_HEIGHT / 2.0f + TILE_HEIGHT / 2.0f;
     
     float dx = MIN_X_DISTANCE - abs(distance.x);
     float dy = MIN_Y_DISTANCE - abs(distance.y);
-    std::cout << "dx: " << dx << " dy: " << dy << std::endl;
+    //std::cout << "dx: " << dx << " dy: " << dy << std::endl;
     
     glm::vec2 newPosition = actorLoc;
     if (dx > 0 || dy > 0) {
@@ -149,6 +153,22 @@ glm::vec2 Map::collisionOffset(glm::vec2 tileLoc, glm::vec2 actorLoc, const floa
         }
     }
     
-    std::cout << "setting position (" << newPosition.x << ", " << newPosition.y << ")" << std::endl;
+    //std::cout << "setting position (" << newPosition.x << ", " << newPosition.y << ")" << std::endl;
     return newPosition;
+}
+
+glm::vec2 Map::getRandomTile() {
+    static std::mt19937 mt((int)time(nullptr));
+    //std::cout << "map size: " << m_mapData.size() << " " << m_mapData[0].size() << std::endl;
+    static std::uniform_int_distribution<int> randX(1, (int)m_mapData[0].size() - 2);
+    static std::uniform_int_distribution<int> randY(1, (int)m_mapData.size() - 2);
+    
+    while (true) {
+        glm::vec2 tile(randX(mt) * TILE_WIDTH, randY(mt) * TILE_HEIGHT);
+        std::cout << "trying tile... " << tile.x << ", " << tile.y << std::endl;
+        if (getTileType(tile) == '.') {
+            std::cout << "found tile!" << std::endl;
+            return tile;
+        }
+    }
 }
