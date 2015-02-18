@@ -9,6 +9,8 @@ public:
     virtual ~Human();
     
     virtual void update();
+    virtual void attack(Actor* target);
+    
     void invertDirection();
     
 private:

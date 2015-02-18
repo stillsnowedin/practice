@@ -14,6 +14,10 @@ void Player::update() {
     //regen health
 }
 
+void Player::attack(Actor* target) {
+    
+}
+
 void Player::getCommands(InputManager inputManager) {
     if (inputManager.isKeyPressed(SDLK_w))
         m_position.y += m_speed;

@@ -8,6 +8,9 @@ Human::~Human() {
 
 }
 
+/*
+ * roam around
+ */
 void Human::update() {
     m_position += m_direction * m_speed;
     
@@ -19,6 +22,10 @@ void Human::update() {
     } else {
         m_frames++;
     }
+}
+
+void Human::attack(Actor* target) {
+    
 }
 
 void Human::invertDirection() {

@@ -10,5 +10,8 @@ Zombie::~Zombie() {
 
 void Zombie::update() {
     //move around
-    //try to attack
+}
+
+void Zombie::attack(Actor* target) {
+    
 }

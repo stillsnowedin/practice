@@ -10,6 +10,7 @@ public:
     virtual ~Player();
     
     virtual void update();
+    virtual void attack(Actor* target);
     
     void getCommands(InputManager inputManager);
     void checkCollision();

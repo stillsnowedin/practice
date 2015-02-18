@@ -17,18 +17,24 @@ public:
     virtual ~Actor();
     
     virtual void update() = 0;
+    virtual void attack(Actor* target) = 0;
     
-    void draw(SpriteBatch& spriteBatch, const std::string& texturePath);
     void init(float speed, glm::vec2 position);
+    void draw(SpriteBatch& spriteBatch, const std::string& texturePath);
+    bool isColliding(glm::vec2 actorLoc);
+    glm::vec2 collisionOffset(glm::vec2 actorLoc);
     
+    void die() { m_isDead = true; };
     void setPosition(glm::vec2 position) { m_position = position; };
     glm::vec2 getPosition() const { return m_position; };
     const float getWidth() const { return ACTOR_WIDTH; };
     const float getHeight() const { return ACTOR_HEIGHT; };
+    bool isDead() { return m_isDead; };
     
 private:
     const float ACTOR_WIDTH = 32;
     const float ACTOR_HEIGHT = 32;
+    bool m_isDead = false;
     //GLTexture m_texture;
     
 protected:

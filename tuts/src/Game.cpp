@@ -67,10 +67,11 @@ void Game::setupActors() {
     std::vector<glm::vec2> zombieLocs = m_maps[m_currentMap]->getZombieLocs();
     for (int z=0; z<zombieLocs.size(); z++) {
         m_zombies.push_back(new Zombie());
-        m_zombies.back()->init(0.5f, zombieLocs[z]);
+        m_zombies.back()->init(1.0f, zombieLocs[z]);
     }
     
     int numHumans = m_maps[m_currentMap]->getNumHumans();
+    //int numHumans = 400;
     std::cout << "num humans: " << numHumans << std::endl;
     for (int h=0; h<numHumans; h++) {
         m_humans.push_back(new Human());
@@ -91,11 +92,11 @@ void Game::run() {
         m_camera.update();
         
         //update other actors
-        for (int i=0; i<m_humans.size(); i++) {
-            m_humans[i]->update();
+        for (int h=0; h<m_humans.size(); h++) {
+            m_humans[h]->update();
         }
-        for (int i=0; i<m_humans.size(); i++) {
-            m_humans[i]->update();
+        for (int z=0; z<m_zombies.size(); z++) {
+            m_zombies[z]->update();
         }
         
         checkCollision();
@@ -151,10 +152,11 @@ void Game::processInput() {
 }
 
 void Game::checkCollision() {
+    const float HUMAN_WIDTH = m_humans[0]->getWidth();
+    const float HUMAN_HEIGHT = m_humans[0]->getHeight();
+    
     for (int h=0; h<m_humans.size(); h++) {
         glm::vec2 humanPosition = m_humans[h]->getPosition();
-        const float HUMAN_WIDTH = m_humans[h]->getWidth();
-        const float HUMAN_HEIGHT = m_humans[h]->getHeight();
         glm::vec2 corners[4];
         corners[0] = glm::vec2(humanPosition.x, humanPosition.y);
         corners[1] = glm::vec2(humanPosition.x + HUMAN_WIDTH, humanPosition.y);
@@ -169,9 +171,43 @@ void Game::checkCollision() {
                 break;
             }
         }
+        
+        //check other humans
+        for (int h2 = h + 1; h2 < m_humans.size(); h2++) {
+            for (int i = 0; i<4; i++) {
+                if (m_humans[h2]->isColliding(corners[i])) {
+                    m_humans[h2]->setPosition(m_humans[h]->collisionOffset(m_humans[h2]->getPosition()));
+                    break;
+                }
+            }
+        }
+        
+        //check zombies
+        for (int z=0; z<m_zombies.size(); z++) {
+            if (m_zombies[z]->isColliding(humanPosition)) {
+                //special instructions if human is the player
+                if (h == 0) {
+                    
+                } else {
+                    //convert human to a zombie
+                    m_zombies.push_back(new Zombie);
+                    m_zombies.back()->init(1.0f, humanPosition);
+                    delete m_humans[h];
+                    m_humans[h] = m_humans.back();
+                    m_humans.pop_back();
+                    break;
+                }
+            }
+            
+            //check zombie vs zombie
+            for (int z2 = z + 1; z2<m_zombies.size(); z2++) {
+                if (m_zombies[z]->isColliding(m_zombies[z2]->getPosition())) {
+                    m_zombies[z2]->setPosition(m_zombies[z]->collisionOffset(m_zombies[z2]->getPosition()));
+                    break;
+                }
+            }
+        }
     }
-    //check other actors
-    
 }
 
 void Game::draw() {
@@ -194,7 +230,7 @@ void Game::draw() {
     for (int h=1; h<m_humans.size(); h++) {
         m_humans[h]->draw(m_spriteBatch, "images/fantasy_tileset/PNG/fantasy-tileset-05-18.png");
     }
-    for (int z=1; z<m_zombies.size(); z++) {
+    for (int z=0; z<m_zombies.size(); z++) {
         m_zombies[z]->draw(m_spriteBatch, "images/fantasy_tileset/PNG/fantasy-tileset-01-22.png");
     }
     m_spriteBatch.end();
