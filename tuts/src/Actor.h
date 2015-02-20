@@ -23,22 +23,25 @@ public:
     bool isColliding(glm::vec2 actorLoc);
     glm::vec2 collisionOffset(glm::vec2 actorLoc);
     
+    void getHit(int damage);
     void die() { m_isDead = true; };
     void setPosition(glm::vec2 position) { m_position = position; };
     glm::vec2 getPosition() const { return m_position; };
     void setDirection(glm::vec2 direction) { m_direction = direction; };
     glm::vec2 getDirection() const { return m_direction; };
+    void setSpeed(float speed) { m_speed = speed; };
+    float getSpeed() const { return m_speed; };
     const float getWidth() const { return ACTOR_WIDTH; };
     const float getHeight() const { return ACTOR_HEIGHT; };
     bool isDead() { return m_isDead; };
     
 private:
-    const float ACTOR_WIDTH = 32;
-    const float ACTOR_HEIGHT = 32;
     bool m_isDead = false;
     //GLTexture m_texture;
     
 protected:
+    const float ACTOR_WIDTH = 32;
+    const float ACTOR_HEIGHT = 32;
     glm::vec2 m_position;
     float m_speed;
     int m_health;

@@ -85,3 +85,10 @@ glm::vec2 Actor::collisionOffset(glm::vec2 actorLoc) {
     //    std::cout << "setting position (" << newPosition.x << ", " << newPosition.y << ")" << std::endl;
     return newPosition;
 }
+
+void Actor::getHit(int damage) {
+    m_health -= damage;
+    if(m_health <= 0) {
+        die();
+    }
+}

@@ -226,7 +226,7 @@ void Game::checkCollision() {
         //check humans
         glm::vec2 newDirection(0.0f, 0.0f);
         float smallestDistance = 1000.0f;
-        for (int h=0; h<m_humans.size(); h++) {
+        for (int h=0; h<m_humans.size();) {
             //check if human is the closest to zombie
             glm::vec2 distVec = m_humans[h]->getPosition() - zombiePosition;
             float distance = glm::length(distVec);
@@ -239,7 +239,7 @@ void Game::checkCollision() {
             if (m_humans[h]->isColliding(zombiePosition)) {
                 //special instructions if human is the player
                 if (h == 0) {
-                    
+                    h++;
                 } else {
                     //convert human to a zombie
                     m_zombies.push_back(new Zombie);
@@ -249,11 +249,85 @@ void Game::checkCollision() {
                     m_humans.pop_back();
                     break;
                 }
+            } else {
+                h++;
             }
         }
         
         //chase closest human
         m_zombies[z]->setDirection(glm::normalize(newDirection));
+    }
+    
+    //projectile collision
+    if (m_projectiles.size() > 0) {
+        const float PROJECTILE_WIDTH = m_projectiles[0].getWidth();
+        const float PROJECTILE_HEIGHT = m_projectiles[0].getHeight();
+    
+        for (int p=0; p<m_projectiles.size();) {
+            glm::vec2 projectilePosition = m_projectiles[p].getPosition();
+            glm::vec2 corners[4];
+            corners[0] = glm::vec2(projectilePosition.x, projectilePosition.y);
+            corners[1] = glm::vec2(projectilePosition.x + PROJECTILE_WIDTH, projectilePosition.y);
+            corners[2] = glm::vec2(projectilePosition.x, projectilePosition.y + PROJECTILE_HEIGHT);
+            corners[3] = glm::vec2(projectilePosition.x + PROJECTILE_WIDTH, projectilePosition.y + PROJECTILE_HEIGHT);
+            
+            bool removeProjectile = false;
+            
+            //check walls
+            for (int i=0; i<4; i++) {
+                if (m_maps[m_currentMap]->isTileCollidable(corners[i])) {
+                    removeProjectile = true;
+                    break;
+                }
+            }
+            
+            //check zombies
+            for (int z=0; z<m_zombies.size();) {
+                if (m_projectiles[p].isColliding(m_zombies[z]->getPosition())) {
+                    m_zombies[z]->getHit(m_projectiles[p].getDamage());
+                    //remove the dead
+                    if(m_zombies[z]->isDead()) {
+                        delete m_zombies[z];
+                        m_zombies[z] = m_zombies.back();
+                        m_zombies.pop_back();
+                    } else {
+                        z++;
+                    }
+                    removeProjectile = true;
+                } else {
+                    z++;
+                }
+            }
+            
+            //check humans
+            for (int h=1; h<m_humans.size();) {
+                if(m_projectiles[p].isColliding(m_humans[h]->getPosition())) {
+                    m_humans[h]->getHit(m_projectiles[p].getDamage());
+                    //remove the deadd
+                    if(m_humans[h]->isDead()) {
+                        delete m_humans[h];
+                        m_humans[h] = m_humans.back();
+                        m_humans.pop_back();
+                    } else {
+                        h++;
+                    }
+                    removeProjectile = true;
+                } else {
+                    h++;
+                }
+            }
+            
+            //if bullet hit anything, remove it
+            if (removeProjectile) {
+                m_projectiles[p].setPosition(m_projectiles.back().getPosition());
+                m_projectiles[p].setDirection(m_projectiles.back().getDirection());
+                m_projectiles[p].setDamage(m_projectiles.back().getDamage());
+                m_projectiles[p].setSpeed(m_projectiles.back().getSpeed());
+                m_projectiles.pop_back();
+            } else {
+                p++;
+            }
+        }
     }
 }
 

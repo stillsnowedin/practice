@@ -9,6 +9,7 @@ public:
     virtual ~Projectile();
     
     virtual void update();
+    bool isColliding(glm::vec2 actorLoc);
     
     void draw(SpriteBatch& spriteBatch, const std::string& texturePath);
     void setDamage(float damage) { m_damage = damage; };
