@@ -17,6 +17,7 @@
 #include "Map.h"
 #include "Player.h"
 #include "Zombie.h"
+#include "Projectile.h"
 
 enum class GameState { IDLE, PLAY, EXIT };
 
@@ -42,6 +43,7 @@ private:
     std::vector<Map*> m_maps;
     std::vector<Human*> m_humans;
     std::vector<Zombie*> m_zombies;
+    std::vector<Projectile> m_projectiles;
     Player* m_player;
     int m_currentMap;
     

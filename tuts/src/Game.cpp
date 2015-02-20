@@ -60,19 +60,23 @@ void Game::setupMap() {
 }
 
 void Game::setupActors() {
+    //player
     m_player = new Player();
     m_player->init(5.0f, m_maps[m_currentMap]->getPlayerLoc());
     m_humans.push_back(m_player);
+    m_player->addWeapon(new Weapon("Pistol", 10, 1, 0.0f, 20, 20.0f));
+    m_player->addWeapon(new Weapon("Shotgun", 30, 20, 0.4f, 5, 20.0f));
+    m_player->addWeapon(new Weapon("AR", 2, 1, 0.1f, 20, 10.0f));
     
+    //zombies
     std::vector<glm::vec2> zombieLocs = m_maps[m_currentMap]->getZombieLocs();
     for (int z=0; z<zombieLocs.size(); z++) {
         m_zombies.push_back(new Zombie());
         m_zombies.back()->init(1.0f, zombieLocs[z]);
     }
     
+    //humans
     int numHumans = m_maps[m_currentMap]->getNumHumans();
-    //int numHumans = 400;
-    std::cout << "num humans: " << numHumans << std::endl;
     for (int h=0; h<numHumans; h++) {
         m_humans.push_back(new Human());
         m_humans.back()->init(0.5f, m_maps[m_currentMap]->getRandomTile());
@@ -88,6 +92,14 @@ void Game::run() {
         
         //update player
         m_player->getCommands(m_inputManager);
+        //fire weapon
+        glm::vec2 mouseLoc = m_camera.convertScreenToWorld(m_inputManager.getMouseLoc());
+        //std::cout << mouseLoc.x << ", " << mouseLoc.y << std::endl;
+        glm::vec2 projectileDirection = glm::normalize(mouseLoc - m_player->getPosition() + glm::vec2(m_player->getWidth()/2, m_player->getHeight()/2));
+        m_player->getCurrentWeapon()->update(m_inputManager.isKeyPressed(SDL_BUTTON_LEFT),
+                                             m_player->getPosition() + glm::vec2(m_player->getWidth()/2, m_player->getHeight()/2),
+                                             projectileDirection,
+                                             m_projectiles);
         //update camera
         m_camera.update();
         
@@ -97,6 +109,9 @@ void Game::run() {
         }
         for (int z=0; z<m_zombies.size(); z++) {
             m_zombies[z]->update();
+        }
+        for (int p=0; p<m_projectiles.size(); p++) {
+            m_projectiles[p].update();
         }
         
         checkCollision();
@@ -142,16 +157,13 @@ void Game::processInput() {
                 break;
         }
     }
-
-    m_camera.setPosition(m_player->getPosition());
     
-    if (m_inputManager.isKeyPressed(SDL_BUTTON_LEFT)) {
-        glm::vec2 mouseLoc = m_camera.convertScreenToWorld(m_inputManager.getMouseLoc());
-        std::cout << mouseLoc.x << ", " << mouseLoc.y << std::endl;
-    }
+    //update camera
+    m_camera.setPosition(m_player->getPosition());
 }
 
 void Game::checkCollision() {
+    //human collision
     const float HUMAN_WIDTH = m_humans[0]->getWidth();
     const float HUMAN_HEIGHT = m_humans[0]->getHeight();
     
@@ -181,32 +193,67 @@ void Game::checkCollision() {
                 }
             }
         }
+    }
+    
+    //zombie collision
+    const float ZOMBIE_WIDTH = m_zombies[0]->getWidth();
+    const float ZOMBIE_HEIGHT = m_zombies[0]->getHeight();
+    
+    for (int z=0; z<m_zombies.size(); z++) {
+        glm::vec2 zombiePosition = m_zombies[z]->getPosition();
+        glm::vec2 corners[4];
+        corners[0] = glm::vec2(zombiePosition.x, zombiePosition.y);
+        corners[1] = glm::vec2(zombiePosition.x + ZOMBIE_WIDTH, zombiePosition.y);
+        corners[2] = glm::vec2(zombiePosition.x, zombiePosition.y + ZOMBIE_HEIGHT);
+        corners[3] = glm::vec2(zombiePosition.x + ZOMBIE_WIDTH, zombiePosition.y + ZOMBIE_HEIGHT);
         
-        //check zombies
-        for (int z=0; z<m_zombies.size(); z++) {
-            if (m_zombies[z]->isColliding(humanPosition)) {
+        //check walls
+        for (int i=0; i<4; i++) {
+            if (m_maps[m_currentMap]->isTileCollidable(corners[i])) {
+                m_zombies[z]->setPosition(m_maps[m_currentMap]->collisionOffset(corners[i], zombiePosition, ZOMBIE_WIDTH, ZOMBIE_HEIGHT));
+                break;
+            }
+        }
+        
+        //check other zombies
+        for (int z2 = z + 1; z2<m_zombies.size(); z2++) {
+            if (m_zombies[z]->isColliding(m_zombies[z2]->getPosition())) {
+                m_zombies[z2]->setPosition(m_zombies[z]->collisionOffset(m_zombies[z2]->getPosition()));
+                break;
+            }
+        }
+        
+        //check humans
+        glm::vec2 newDirection(0.0f, 0.0f);
+        float smallestDistance = 1000.0f;
+        for (int h=0; h<m_humans.size(); h++) {
+            //check if human is the closest to zombie
+            glm::vec2 distVec = m_humans[h]->getPosition() - zombiePosition;
+            float distance = glm::length(distVec);
+            if (distance < smallestDistance) {
+                smallestDistance = distance;
+                newDirection = distVec;
+            }
+            
+            //check if zombie is touching human
+            if (m_humans[h]->isColliding(zombiePosition)) {
                 //special instructions if human is the player
                 if (h == 0) {
                     
                 } else {
                     //convert human to a zombie
                     m_zombies.push_back(new Zombie);
-                    m_zombies.back()->init(1.0f, humanPosition);
+                    m_zombies.back()->init(1.0f, m_humans[h]->getPosition());
                     delete m_humans[h];
                     m_humans[h] = m_humans.back();
                     m_humans.pop_back();
                     break;
                 }
             }
-            
-            //check zombie vs zombie
-            for (int z2 = z + 1; z2<m_zombies.size(); z2++) {
-                if (m_zombies[z]->isColliding(m_zombies[z2]->getPosition())) {
-                    m_zombies[z2]->setPosition(m_zombies[z]->collisionOffset(m_zombies[z2]->getPosition()));
-                    break;
-                }
-            }
         }
+        
+        //chase closest human
+        m_zombies[z]->setDirection(glm::normalize(newDirection));
     }
 }
 
@@ -232,6 +279,9 @@ void Game::draw() {
     }
     for (int z=0; z<m_zombies.size(); z++) {
         m_zombies[z]->draw(m_spriteBatch, "images/fantasy_tileset/PNG/fantasy-tileset-01-22.png");
+    }
+    for (int p=0; p<m_projectiles.size(); p++) {
+        m_projectiles[p].draw(m_spriteBatch, "images/fantasy_tileset/PNG/fantasy-tileset-00-07.png");
     }
     m_spriteBatch.end();
     m_spriteBatch.renderBatch();

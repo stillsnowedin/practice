@@ -17,7 +17,6 @@ public:
     virtual ~Actor();
     
     virtual void update() = 0;
-    virtual void attack(Actor* target) = 0;
     
     void init(float speed, glm::vec2 position);
     void draw(SpriteBatch& spriteBatch, const std::string& texturePath);
@@ -27,6 +26,8 @@ public:
     void die() { m_isDead = true; };
     void setPosition(glm::vec2 position) { m_position = position; };
     glm::vec2 getPosition() const { return m_position; };
+    void setDirection(glm::vec2 direction) { m_direction = direction; };
+    glm::vec2 getDirection() const { return m_direction; };
     const float getWidth() const { return ACTOR_WIDTH; };
     const float getHeight() const { return ACTOR_HEIGHT; };
     bool isDead() { return m_isDead; };

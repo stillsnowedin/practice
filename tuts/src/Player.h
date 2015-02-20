@@ -3,6 +3,7 @@
 
 #include "Human.h"
 #include "InputManager.h"
+#include "Weapon.h"
 
 class Player : public Human {
 public:
@@ -10,14 +11,15 @@ public:
     virtual ~Player();
     
     virtual void update();
-    virtual void attack(Actor* target);
     
     void getCommands(InputManager inputManager);
     void checkCollision();
+    void addWeapon(Weapon* weapon);
+    Weapon* getCurrentWeapon() { return m_weapons[m_currentWeapon]; };
     
 private:
-    
-    
+    std::vector<Weapon*> m_weapons;
+    int m_currentWeapon;
 };
 
 #endif /* defined(__tuts__Player__) */

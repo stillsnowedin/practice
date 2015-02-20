@@ -165,9 +165,9 @@ glm::vec2 Map::getRandomTile() {
     
     while (true) {
         glm::vec2 tile(randX(mt) * TILE_WIDTH, randY(mt) * TILE_HEIGHT);
-        std::cout << "trying tile... " << tile.x << ", " << tile.y << std::endl;
+        //std::cout << "trying tile... " << tile.x << ", " << tile.y << std::endl;
         if (getTileType(tile) == '.') {
-            std::cout << "found tile!" << std::endl;
+            //std::cout << "found tile!" << std::endl;
             return tile;
         }
     }

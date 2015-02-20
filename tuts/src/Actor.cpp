@@ -19,7 +19,7 @@ void Actor::init(float speed, glm::vec2 position) {
     if (m_direction.length() == 0) m_direction = glm::vec2(1.0f, 0.0f);
     m_direction = glm::normalize(m_direction);
     
-    std::cout << "Actor loc: " << position.x << ", " << position.y << std::endl;
+    //std::cout << "Actor loc: " << position.x << ", " << position.y << std::endl;
 }
 
 void Actor::draw(SpriteBatch& spriteBatch, const std::string& texturePath) {

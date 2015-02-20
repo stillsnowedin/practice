@@ -1,7 +1,7 @@
 #include "Human.h"
 
 Human::Human() {
-
+    m_health = 100;
 }
 
 Human::~Human() {
@@ -22,10 +22,6 @@ void Human::update() {
     } else {
         m_frames++;
     }
-}
-
-void Human::attack(Actor* target) {
-    
 }
 
 void Human::invertDirection() {

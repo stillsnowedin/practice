@@ -9,7 +9,7 @@ public:
     virtual ~Zombie();
     
     virtual void update();
-    virtual void attack(Actor* target);
+    
 };
 
 #endif /* defined(__tuts__Zombie__) */
