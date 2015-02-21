@@ -217,7 +217,7 @@ void Game::checkCollision() {
         for (int i=0; i<4; i++) {
             if (m_maps[m_currentMap]->isTileCollidable(corners[i])) {
                 m_zombies[z]->setPosition(m_maps[m_currentMap]->collisionOffset(corners[i], zombiePosition, ZOMBIE_WIDTH, ZOMBIE_HEIGHT));
-                //sz--; //recheck this zombie to make sure it didn't get pushed into another wall
+                zombiePosition = m_zombies[z]->getPosition();
                 break;
             }
         }
@@ -232,14 +232,17 @@ void Game::checkCollision() {
         
         //check humans
         glm::vec2 newDirection(0.0f, 0.0f);
-        float smallestDistance = 1000.0f;
+        float smallestDistance = 10000.0f;
         for (int h=0; h<m_humans.size(); h++) {
             //check if human is the closest to zombie
             glm::vec2 distVec = m_humans[h]->getPosition() - zombiePosition;
             float distance = glm::length(distVec);
+            
+            //chase closest human
             if (distance < smallestDistance) {
                 smallestDistance = distance;
                 newDirection = distVec;
+                m_zombies[z]->setDirection(glm::normalize(newDirection));
             }
             
             //check if zombie is touching human
@@ -260,9 +263,6 @@ void Game::checkCollision() {
                 }
             }
         }
-        
-        //chase closest human
-        m_zombies[z]->setDirection(glm::normalize(newDirection));
     }
     
     //projectile collision
@@ -316,11 +316,11 @@ void Game::checkCollision() {
                         m_humans[h]->getHit(m_projectiles[p].getDamage());
                         //remove the dead
                         if(m_humans[h]->isDead()) {
-                            m_humansKilled++;
-                            m_numHumans--;
                             delete m_humans[h];
                             m_humans[h] = m_humans.back();
                             m_humans.pop_back();
+                            m_humansKilled++;
+                            m_numHumans--;
                             h--; //don't increment h
                         }
                         removeProjectile = true;

@@ -19,7 +19,7 @@ void Actor::init(float speed, glm::vec2 position) {
     if (m_direction.length() == 0) m_direction = glm::vec2(1.0f, 0.0f);
     m_direction = glm::normalize(m_direction);
     
-    //std::cout << "Actor loc: " << position.x << ", " << position.y << std::endl;
+    //std::cout << "[Actor] loc: " << position.x << ", " << position.y << std::endl;
 }
 
 void Actor::draw(SpriteBatch& spriteBatch, const std::string& texturePath) {
@@ -82,7 +82,7 @@ glm::vec2 Actor::collisionOffset(glm::vec2 actorLoc) {
         }
     }
     
-    //    std::cout << "setting position (" << newPosition.x << ", " << newPosition.y << ")" << std::endl;
+    //std::cout << "[Actor] setting position (" << newPosition.x << ", " << newPosition.y << ")" << std::endl;
     return newPosition;
 }
 

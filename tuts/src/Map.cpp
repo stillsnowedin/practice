@@ -157,7 +157,7 @@ glm::vec2 Map::collisionOffset(glm::vec2 tileLoc, glm::vec2 actorLoc, const floa
         }
     }
     
-    //std::cout << "setting position (" << newPosition.x << ", " << newPosition.y << ")" << std::endl;
+    //std::cout << "[Map] setting position (" << newPosition.x << ", " << newPosition.y << ")" << std::endl;
     return newPosition;
 }
 
