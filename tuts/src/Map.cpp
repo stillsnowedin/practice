@@ -108,8 +108,11 @@ char Map::getTileType(glm::vec2 loc) {
     int tileCol = floorf(loc.x / TILE_WIDTH);
     int tileRow = floorf(loc.y / TILE_HEIGHT);
     
-    std::cout << "got tile [" << tileRow << "][" << tileCol << "]" << std::endl;
-    return m_mapData[tileRow][tileCol];
+    //std::cout << "got tile [" << tileRow << "][" << tileCol << "]" << std::endl;
+    if (tileRow > 0 && tileRow <= m_mapData.size() && tileCol > 0 && tileCol <= m_mapData[0].size())
+        return m_mapData[tileRow][tileCol];
+    else
+        return '?';
 }
 
 glm::vec2 Map::getTileLoc(glm::vec2 loc) {

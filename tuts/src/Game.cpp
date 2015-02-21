@@ -81,6 +81,10 @@ void Game::setupActors() {
         m_humans.push_back(new Human());
         m_humans.back()->init(0.5f, m_maps[m_currentMap]->getRandomTile());
     }
+    m_numZombies = (int)m_zombies.size();
+    m_numHumans = (int)m_humans.size();
+    m_zombiesKilled = 0;
+    m_humansKilled = 0;
 }
 
 void Game::run() {
@@ -97,7 +101,7 @@ void Game::run() {
         //std::cout << mouseLoc.x << ", " << mouseLoc.y << std::endl;
         glm::vec2 projectileDirection = glm::normalize(mouseLoc - m_player->getPosition() + glm::vec2(m_player->getWidth()/2, m_player->getHeight()/2));
         m_player->getCurrentWeapon()->update(m_inputManager.isKeyPressed(SDL_BUTTON_LEFT),
-                                             m_player->getPosition() + glm::vec2(m_player->getWidth()/2, m_player->getHeight()/2),
+                                             m_player->getPosition(),
                                              projectileDirection,
                                              m_projectiles);
         //update camera
@@ -127,6 +131,8 @@ void Game::run() {
             std::cout << fps << std::endl;
             frameCounter = 0;
         }
+        
+        checkVictory();
     }
 }
 
@@ -211,6 +217,7 @@ void Game::checkCollision() {
         for (int i=0; i<4; i++) {
             if (m_maps[m_currentMap]->isTileCollidable(corners[i])) {
                 m_zombies[z]->setPosition(m_maps[m_currentMap]->collisionOffset(corners[i], zombiePosition, ZOMBIE_WIDTH, ZOMBIE_HEIGHT));
+                //sz--; //recheck this zombie to make sure it didn't get pushed into another wall
                 break;
             }
         }
@@ -226,7 +233,7 @@ void Game::checkCollision() {
         //check humans
         glm::vec2 newDirection(0.0f, 0.0f);
         float smallestDistance = 1000.0f;
-        for (int h=0; h<m_humans.size();) {
+        for (int h=0; h<m_humans.size(); h++) {
             //check if human is the closest to zombie
             glm::vec2 distVec = m_humans[h]->getPosition() - zombiePosition;
             float distance = glm::length(distVec);
@@ -239,7 +246,6 @@ void Game::checkCollision() {
             if (m_humans[h]->isColliding(zombiePosition)) {
                 //special instructions if human is the player
                 if (h == 0) {
-                    h++;
                 } else {
                     //convert human to a zombie
                     m_zombies.push_back(new Zombie);
@@ -247,10 +253,11 @@ void Game::checkCollision() {
                     delete m_humans[h];
                     m_humans[h] = m_humans.back();
                     m_humans.pop_back();
+                    m_numHumans--;
+                    m_numZombies++;
+                    h--; //don't increment h
                     break;
                 }
-            } else {
-                h++;
             }
         }
         
@@ -282,38 +289,42 @@ void Game::checkCollision() {
             }
             
             //check zombies
-            for (int z=0; z<m_zombies.size();) {
-                if (m_projectiles[p].isColliding(m_zombies[z]->getPosition())) {
-                    m_zombies[z]->getHit(m_projectiles[p].getDamage());
-                    //remove the dead
-                    if(m_zombies[z]->isDead()) {
-                        delete m_zombies[z];
-                        m_zombies[z] = m_zombies.back();
-                        m_zombies.pop_back();
-                    } else {
-                        z++;
+            //only if projectile is still alive
+            if (!removeProjectile) {
+                for (int z=0; z<m_zombies.size(); z++) {
+                    if (m_projectiles[p].isColliding(m_zombies[z]->getPosition())) {
+                        m_zombies[z]->getHit(m_projectiles[p].getDamage());
+                        //remove the dead
+                        if(m_zombies[z]->isDead()) {
+                            delete m_zombies[z];
+                            m_zombies[z] = m_zombies.back();
+                            m_zombies.pop_back();
+                            m_zombiesKilled++;
+                            m_numZombies--;
+                            z--; //don't increment z
+                        }
+                        removeProjectile = true;
                     }
-                    removeProjectile = true;
-                } else {
-                    z++;
                 }
             }
             
             //check humans
-            for (int h=1; h<m_humans.size();) {
-                if(m_projectiles[p].isColliding(m_humans[h]->getPosition())) {
-                    m_humans[h]->getHit(m_projectiles[p].getDamage());
-                    //remove the deadd
-                    if(m_humans[h]->isDead()) {
-                        delete m_humans[h];
-                        m_humans[h] = m_humans.back();
-                        m_humans.pop_back();
-                    } else {
-                        h++;
+            //only if projectile is still alive
+            if (!removeProjectile) {
+                for (int h=1; h<m_humans.size(); h++) {
+                    if(m_projectiles[p].isColliding(m_humans[h]->getPosition())) {
+                        m_humans[h]->getHit(m_projectiles[p].getDamage());
+                        //remove the dead
+                        if(m_humans[h]->isDead()) {
+                            m_humansKilled++;
+                            m_numHumans--;
+                            delete m_humans[h];
+                            m_humans[h] = m_humans.back();
+                            m_humans.pop_back();
+                            h--; //don't increment h
+                        }
+                        removeProjectile = true;
                     }
-                    removeProjectile = true;
-                } else {
-                    h++;
                 }
             }
             
@@ -328,6 +339,15 @@ void Game::checkCollision() {
                 p++;
             }
         }
+    }
+}
+
+void Game::checkVictory() {
+    if (m_numZombies <= 0) {
+        std::cout << "You Win! The zombies are all dead.\nZombies killed: " << m_zombiesKilled << "\nHumans killed: " << m_humansKilled << "\nHuman survivors: " << m_numHumans << std::endl;
+        m_gameState = GameState::EXIT;
+    } else if (m_numHumans <= 0) {
+        std::cout << "You Lose! The humans are all dead.\nZombies killed: " << m_zombiesKilled << "\nHumans killed: " << m_humansKilled << "\nZombie survivors: " << m_numZombies << std::endl;
     }
 }
 

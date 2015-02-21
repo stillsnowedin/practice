@@ -46,6 +46,10 @@ private:
     std::vector<Projectile> m_projectiles;
     Player* m_player;
     int m_currentMap;
+    int m_numZombies;
+    int m_numHumans;
+    int m_zombiesKilled;
+    int m_humansKilled;
     
     void setupWindow();
     void setupShaders();
@@ -54,6 +58,7 @@ private:
     void run();
     void processInput();
     void checkCollision();
+    void checkVictory();
     void draw();
     
 };
