@@ -10,6 +10,7 @@ public:
     float end(); //returns fps
     void setMaxFPS(float maxFPS);
     void calculateFPS();
+    float getTimeStep();
     
 private:
     float m_fps;

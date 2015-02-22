@@ -12,8 +12,8 @@ Projectile::~Projectile() {
 
 }
 
-void Projectile::update() {
-    m_position += m_direction * m_speed;
+void Projectile::update(float deltaTime) {
+    m_position += m_direction * m_speed * deltaTime;
 }
 
 bool Projectile::isColliding(glm::vec2 actorLoc) {

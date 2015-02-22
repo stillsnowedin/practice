@@ -11,8 +11,8 @@ Human::~Human() {
 /*
  * roam around
  */
-void Human::update() {
-    m_position += m_direction * m_speed;
+void Human::update(float deltaTime) {
+    m_position += m_direction * m_speed * deltaTime;
     
     if (m_frames == 50) {
         static std::mt19937 mt((uint)time(nullptr));

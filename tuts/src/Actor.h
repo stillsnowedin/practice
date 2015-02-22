@@ -16,7 +16,7 @@ public:
     Actor();
     virtual ~Actor();
     
-    virtual void update() = 0;
+    virtual void update(float deltaTime) = 0;
     
     void init(float speed, glm::vec2 position);
     void draw(SpriteBatch& spriteBatch, const std::string& texturePath);

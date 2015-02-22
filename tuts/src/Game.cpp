@@ -1,13 +1,10 @@
 #include "Game.h"
 
 Game::Game() {
-    m_screenWidth = 1024;
-    m_screenHeight = 768;
     m_gameState = GameState::IDLE;
     m_time = 0.0f;
     m_uniformID = 0;
-    m_maxFPS = 60.0f;
-    m_camera.init(m_screenWidth, m_screenHeight);
+    m_camera.init(SCREEN_WIDTH, SCREEN_HEIGHT);
     m_player = nullptr;
 }
 
@@ -28,7 +25,12 @@ void Game::init() {
     setupShaders();
     setupMap();
     setupActors();
-    m_fpsLimiter.init(m_maxFPS);
+    
+    m_fpsLimiter.init(MAX_FPS);
+    
+    const float CAMERA_SCALE = 1.0f / 2.0f;
+    m_camera.setScale(CAMERA_SCALE);
+    
     run();
 }
 
@@ -39,7 +41,7 @@ void Game::setupWindow() {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     
-    m_window.create("Tuts Game", m_screenWidth, m_screenHeight, 0);
+    m_window.create("Tuts Game", SCREEN_WIDTH, SCREEN_HEIGHT, 0);
 }
 
 void Game::setupShaders() {
@@ -90,16 +92,38 @@ void Game::setupActors() {
 void Game::run() {
     while (m_gameState != GameState::EXIT) {
         m_fpsLimiter.begin();
+        float totalDeltaTime = m_fpsLimiter.getTimeStep();
+        const int MAX_TIME_STEPS = 6;
+        const float MAX_DELTA_TIME = 1.0f;
         
         m_inputManager.update();
         processInput();
         m_time += 0.01f;
         
-        //update player
-        m_player->getCommands(m_inputManager);
+        int i = 0;
+        while (totalDeltaTime > 0.0f && i < MAX_TIME_STEPS) {
+            float deltaTime = std::min(totalDeltaTime, MAX_DELTA_TIME);
+            
+            //update player
+            m_player->getCommands(m_inputManager, deltaTime);
+            
+            //update other actors
+            for (int h=0; h<m_humans.size(); h++) {
+                m_humans[h]->update(deltaTime);
+            }
+            for (int z=0; z<m_zombies.size(); z++) {
+                m_zombies[z]->update(deltaTime);
+            }
+            for (int p=0; p<m_projectiles.size(); p++) {
+                m_projectiles[p].update(deltaTime);
+            }
+            
+            totalDeltaTime -= deltaTime;
+            i++;
+        }
+        
         //fire weapon
         glm::vec2 mouseLoc = m_camera.convertScreenToWorld(m_inputManager.getMouseLoc());
-        //std::cout << mouseLoc.x << ", " << mouseLoc.y << std::endl;
         glm::vec2 projectileDirection = glm::normalize(mouseLoc - m_player->getPosition() + glm::vec2(m_player->getWidth()/2, m_player->getHeight()/2));
         m_player->getCurrentWeapon()->update(m_inputManager.isKeyDown(SDL_BUTTON_LEFT),
                                              m_player->getPosition(),
@@ -107,17 +131,6 @@ void Game::run() {
                                              m_projectiles);
         //update camera
         m_camera.update();
-        
-        //update other actors
-        for (int h=0; h<m_humans.size(); h++) {
-            m_humans[h]->update();
-        }
-        for (int z=0; z<m_zombies.size(); z++) {
-            m_zombies[z]->update();
-        }
-        for (int p=0; p<m_projectiles.size(); p++) {
-            m_projectiles[p].update();
-        }
         
         checkCollision();
         
@@ -129,7 +142,7 @@ void Game::run() {
         static int frameCounter = 0;
         frameCounter++;
         if (frameCounter == 1000) {
-            std::cout << fps << std::endl;
+            std::cout << "[Game] " << fps << " fps" << std::endl;
             frameCounter = 0;
         }
         

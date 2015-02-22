@@ -8,7 +8,7 @@ public:
     Human();
     virtual ~Human();
     
-    virtual void update();
+    virtual void update(float deltaTime) override;
     
     void invertDirection();
     

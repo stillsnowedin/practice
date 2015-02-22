@@ -1,4 +1,4 @@
-#include "Timing.h"
+#include "FPSLimiter.h"
 #include <SDL2/SDL.h>
 
 FPSLimiter::FPSLimiter() {
@@ -58,6 +58,19 @@ void FPSLimiter::calculateFPS() {
     if (frameTimeAverage > 0) {
         m_fps = 1000.0f / frameTimeAverage;
     } else {
-        m_fps = 60.0f;
+        m_fps = m_maxFPS;
     }
+}
+
+float FPSLimiter::getTimeStep() {
+    const float MS_PER_SECOND = 1000;
+    const float DESIRED_FRAMETIME = MS_PER_SECOND / m_maxFPS;
+    
+    static float previousTicks = SDL_GetTicks();
+    float currentTicks = SDL_GetTicks();
+    float frameTime = currentTicks - previousTicks;
+    previousTicks = currentTicks;
+    float totalDeltaTime = frameTime / DESIRED_FRAMETIME;
+    
+    return totalDeltaTime;
 }

@@ -8,7 +8,7 @@ public:
     Projectile(glm::vec2 position, glm::vec2 direction, float damage, float speed);
     virtual ~Projectile();
     
-    virtual void update();
+    virtual void update(float deltaTime) override;
     bool isColliding(glm::vec2 actorLoc);
     
     void draw(SpriteBatch& spriteBatch, const std::string& texturePath);

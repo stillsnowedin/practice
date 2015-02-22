@@ -10,9 +10,9 @@ public:
     Player();
     virtual ~Player();
     
-    virtual void update();
+    virtual void update(float deltaTime) override;
     
-    void getCommands(InputManager inputManager);
+    void getCommands(InputManager inputManager, float deltaTime);
     void checkCollision();
     void addWeapon(Weapon* weapon);
     Weapon* getCurrentWeapon() { return m_weapons[m_currentWeapon]; };

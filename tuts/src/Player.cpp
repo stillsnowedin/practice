@@ -10,20 +10,20 @@ Player::~Player() {
     
 }
 
-void Player::update() {
-    //regen health
+void Player::update(float deltaTime) {
+    //regen health?
 }
 
-void Player::getCommands(InputManager inputManager) {
+void Player::getCommands(InputManager inputManager, float deltaTime) {
     if (inputManager.isKeyDown(SDLK_w))
-        m_position.y += m_speed;
+        m_position.y += m_speed * deltaTime;
     else if (inputManager.isKeyDown(SDLK_s))
-        m_position.y -= m_speed;
+        m_position.y -= m_speed * deltaTime;
     
     if (inputManager.isKeyDown(SDLK_a))
-        m_position.x -= m_speed;
+        m_position.x -= m_speed * deltaTime;
     else if (inputManager.isKeyDown(SDLK_d))
-        m_position.x += m_speed;
+        m_position.x += m_speed * deltaTime;
     
     if (inputManager.isKeyDown(SDLK_1)) {
         m_currentWeapon = 0;

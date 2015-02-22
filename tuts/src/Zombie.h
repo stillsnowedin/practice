@@ -8,7 +8,7 @@ public:
     Zombie();
     virtual ~Zombie();
     
-    virtual void update();
+    virtual void update(float deltaTime) override;
     
 };
 

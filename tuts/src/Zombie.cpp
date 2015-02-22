@@ -11,7 +11,7 @@ Zombie::~Zombie() {
 /*
  * AI run on every frame
  */
-void Zombie::update() {
+void Zombie::update(float deltaTime) {
     //move around
-    m_position += m_direction * m_speed;
+    m_position += m_direction * m_speed * deltaTime;
 }

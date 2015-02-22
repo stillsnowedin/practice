@@ -13,7 +13,7 @@
 #include "Camera2D.h"
 #include "SpriteBatch.h"
 #include "InputManager.h"
-#include "Timing.h"
+#include "FPSLimiter.h"
 #include "Map.h"
 #include "Player.h"
 #include "Zombie.h"
@@ -29,13 +29,13 @@ public:
     
 private:
     Window m_window;
-    int m_screenWidth;
-    int m_screenHeight;
+    const int SCREEN_WIDTH = 1024;
+    const int SCREEN_HEIGHT = 768;
+    const float MAX_FPS = 60.0f;
     GameState m_gameState;
     GLSLProgram m_colorProgram;
     float m_time;
     int m_uniformID;
-    float m_maxFPS;
     Camera2D m_camera;
     SpriteBatch m_spriteBatch;
     InputManager m_inputManager;
