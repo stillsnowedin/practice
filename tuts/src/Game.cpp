@@ -141,7 +141,7 @@ void Game::run() {
         //print the FPS
         static int frameCounter = 0;
         frameCounter++;
-        if (frameCounter == 1000) {
+        if (frameCounter == 500) {
             std::cout << "[Game] " << fps << " fps" << std::endl;
             frameCounter = 0;
         }
@@ -358,10 +358,10 @@ void Game::checkCollision() {
 
 void Game::checkVictory() {
     if (m_numZombies <= 0) {
-        std::cout << "You Win! The zombies are all dead.\nZombies killed: " << m_zombiesKilled << "\nHumans killed: " << m_humansKilled << "\nHuman survivors: " << m_numHumans << std::endl;
+        std::cout << "[Game] You Win! The zombies are all dead.\nZombies killed: " << m_zombiesKilled << "\nHumans killed: " << m_humansKilled << "\nHuman survivors: " << m_numHumans << std::endl;
         m_gameState = GameState::EXIT;
     } else if (m_numHumans <= 0) {
-        std::cout << "You Lose! The humans are all dead.\nZombies killed: " << m_zombiesKilled << "\nHumans killed: " << m_humansKilled << "\nZombie survivors: " << m_numZombies << std::endl;
+        std::cout << "[Game] You Lose! The humans are all dead.\nZombies killed: " << m_zombiesKilled << "\nHumans killed: " << m_humansKilled << "\nZombie survivors: " << m_numZombies << std::endl;
     }
 }
 

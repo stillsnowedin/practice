@@ -1,5 +1,6 @@
 #include "FPSLimiter.h"
 #include <SDL2/SDL.h>
+#include <iostream>
 
 FPSLimiter::FPSLimiter() {
 

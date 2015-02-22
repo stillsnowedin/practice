@@ -86,7 +86,7 @@ void Map::draw(SpriteBatch& spriteBatch) {
                                        color);
                     break;
                 default:
-                    //std::printf("Unexpected symbol %c at (%d, %d)\n", tile, col, row);
+                    //std::printf("[Map] Unexpected symbol %c at (%d, %d)\n", tile, col, row);
                     break;
             }
         }
