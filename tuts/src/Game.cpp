@@ -383,13 +383,16 @@ void Game::draw() {
     m_maps[m_currentMap]->draw(m_spriteBatch);
     m_player->draw(m_spriteBatch, "images/fantasy_tileset/PNG/fantasy-tileset-02-18.png");
     for (int h=1; h<m_humans.size(); h++) {
-        m_humans[h]->draw(m_spriteBatch, "images/fantasy_tileset/PNG/fantasy-tileset-05-18.png");
+        if (m_camera.isInView(m_humans[h]->getPosition(), glm::vec2(m_humans[h]->getWidth(), m_humans[h]->getHeight())))
+            m_humans[h]->draw(m_spriteBatch, "images/fantasy_tileset/PNG/fantasy-tileset-05-18.png");
     }
     for (int z=0; z<m_zombies.size(); z++) {
-        m_zombies[z]->draw(m_spriteBatch, "images/fantasy_tileset/PNG/fantasy-tileset-01-22.png");
+        if (m_camera.isInView(m_zombies[z]->getPosition(), glm::vec2(m_zombies[z]->getWidth(), m_zombies[z]->getHeight())))
+            m_zombies[z]->draw(m_spriteBatch, "images/fantasy_tileset/PNG/fantasy-tileset-01-22.png");
     }
     for (int p=0; p<m_projectiles.size(); p++) {
-        m_projectiles[p].draw(m_spriteBatch, "images/fantasy_tileset/PNG/fantasy-tileset-00-07.png");
+        if (m_camera.isInView(m_projectiles[p].getPosition(), glm::vec2(m_projectiles[p].getWidth(), m_projectiles[p].getHeight())))
+            m_projectiles[p].draw(m_spriteBatch, "images/fantasy_tileset/PNG/fantasy-tileset-00-07.png");
     }
     m_spriteBatch.end();
     m_spriteBatch.renderBatch();

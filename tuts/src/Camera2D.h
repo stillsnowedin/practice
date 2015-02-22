@@ -12,6 +12,7 @@ public:
     void init(int screenWidth, int screenHeight);
     void update();
     glm::vec2 convertScreenToWorld(glm::vec2 screenLoc);
+    bool isInView(const glm::vec2& spriteLoc, const glm::vec2& spriteSize);
     
     void setPosition(const glm::vec2& newPosition) { m_position = newPosition; m_needUpdate = true; }
     void setScale(float newScale) { m_scale = newScale; m_needUpdate = true; }

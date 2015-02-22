@@ -42,3 +42,21 @@ glm::vec2 Camera2D::convertScreenToWorld(glm::vec2 screenLoc) {
     screenLoc += m_position;
     return screenLoc;
 }
+
+/*
+ * return true if sprite is in range of camera
+ */
+bool Camera2D::isInView(const glm::vec2& spriteLoc, const glm::vec2& spriteSize) {
+    glm::vec2 scaledScreenSize = glm::vec2(m_screenWidth, m_screenHeight) / m_scale;
+    glm::vec2 cameraCenter = m_position;
+    glm::vec2 spriteCenter = spriteLoc + glm::vec2(spriteSize.x / 2.0f, spriteSize.y / 2.0f);
+    glm::vec2 distance = spriteCenter - cameraCenter;
+    
+    const float MIN_X_DISTANCE = spriteSize.x / 2.0f + scaledScreenSize.x / 2.0f;
+    const float MIN_Y_DISTANCE = spriteSize.y / 2.0f + scaledScreenSize.y / 2.0f;
+    
+    if (abs(distance.x) < MIN_X_DISTANCE && abs(distance.y) < MIN_Y_DISTANCE)
+        return true;
+    else
+        return false;
+}
