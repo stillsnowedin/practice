@@ -116,7 +116,7 @@ void SpriteBatch::renderBatch() {
     glBindVertexArray(0);
 }
 
-void SpriteBatch::draw(const glm::vec4& destRect, const glm::vec4& uvRect, GLuint texture, float depth, Color color) {
+void SpriteBatch::draw(const glm::vec4& destRect, const glm::vec4& uvRect, GLuint texture, float depth, ColorRGBA8 color) {
     Glyph* newGlyph = new Glyph;
     newGlyph->texture = texture;
     newGlyph->depth = depth;

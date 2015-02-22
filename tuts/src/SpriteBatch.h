@@ -35,7 +35,7 @@ public:
     void init(GLSLProgram& shaderProgram);
     void begin(GlyphSortType sortType = GlyphSortType::TEXTURE);
     void end();
-    void draw(const glm::vec4& destRect, const glm::vec4& uvRect, GLuint texture, float depth, Color color);
+    void draw(const glm::vec4& destRect, const glm::vec4& uvRect, GLuint texture, float depth, ColorRGBA8 color);
     void renderBatch();
     
 private:

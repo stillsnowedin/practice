@@ -15,21 +15,21 @@ void Player::update() {
 }
 
 void Player::getCommands(InputManager inputManager) {
-    if (inputManager.isKeyPressed(SDLK_w))
+    if (inputManager.isKeyDown(SDLK_w))
         m_position.y += m_speed;
-    else if (inputManager.isKeyPressed(SDLK_s))
+    else if (inputManager.isKeyDown(SDLK_s))
         m_position.y -= m_speed;
     
-    if (inputManager.isKeyPressed(SDLK_a))
+    if (inputManager.isKeyDown(SDLK_a))
         m_position.x -= m_speed;
-    else if (inputManager.isKeyPressed(SDLK_d))
+    else if (inputManager.isKeyDown(SDLK_d))
         m_position.x += m_speed;
     
-    if (inputManager.isKeyPressed(SDLK_1)) {
+    if (inputManager.isKeyDown(SDLK_1)) {
         m_currentWeapon = 0;
-    } else if (inputManager.isKeyPressed(SDLK_2)) {
+    } else if (inputManager.isKeyDown(SDLK_2)) {
         m_currentWeapon = 1;
-    } else if (inputManager.isKeyPressed(SDLK_3)) {
+    } else if (inputManager.isKeyDown(SDLK_3)) {
         m_currentWeapon = 2;
     }
 }

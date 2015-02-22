@@ -29,11 +29,7 @@ Map::~Map() {
 
 void Map::draw(SpriteBatch& spriteBatch) {
     glm::vec4 uvRect(0.0f, 0.0f, 1.0f, 1.0f);
-    Color color;
-    color.r = 255;
-    color.g = 255;
-    color.b = 255;
-    color.a = 255;
+    ColorRGBA8 color(255, 255, 255, 255);
     
     for (int row=0; row < m_mapData.size(); row++) {
         for (int col=0; col < m_mapData[row].size(); col++) {

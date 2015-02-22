@@ -36,10 +36,6 @@ bool Projectile::isColliding(glm::vec2 actorLoc) {
 void Projectile::draw(SpriteBatch& spriteBatch, const std::string& texturePath) {
     glm::vec4 destRect(m_position.x, m_position.y, PROJECTILE_WIDTH, PROJECTILE_HEIGHT);
     glm::vec4 uvRect(0.0f, 0.0f, 1.0f, 1.0f);
-    Color color;
-    color.r = 255;
-    color.g = 255;
-    color.b = 255;
-    color.a = 255;
+    ColorRGBA8 color(255, 255, 255, 255);
     spriteBatch.draw(destRect, uvRect, ResourceManager::getTexture(texturePath).id, 0.0f, color);
 }

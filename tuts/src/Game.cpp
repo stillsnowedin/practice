@@ -91,6 +91,7 @@ void Game::run() {
     while (m_gameState != GameState::EXIT) {
         m_fpsLimiter.begin();
         
+        m_inputManager.update();
         processInput();
         m_time += 0.01f;
         
@@ -100,7 +101,7 @@ void Game::run() {
         glm::vec2 mouseLoc = m_camera.convertScreenToWorld(m_inputManager.getMouseLoc());
         //std::cout << mouseLoc.x << ", " << mouseLoc.y << std::endl;
         glm::vec2 projectileDirection = glm::normalize(mouseLoc - m_player->getPosition() + glm::vec2(m_player->getWidth()/2, m_player->getHeight()/2));
-        m_player->getCurrentWeapon()->update(m_inputManager.isKeyPressed(SDL_BUTTON_LEFT),
+        m_player->getCurrentWeapon()->update(m_inputManager.isKeyDown(SDL_BUTTON_LEFT),
                                              m_player->getPosition(),
                                              projectileDirection,
                                              m_projectiles);
