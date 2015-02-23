@@ -5,6 +5,7 @@ Game::Game() {
     m_time = 0.0f;
     m_uniformID = 0;
     m_camera.init(SCREEN_WIDTH, SCREEN_HEIGHT);
+    m_hudCamera.init(SCREEN_WIDTH, SCREEN_HEIGHT);
     m_player = nullptr;
 }
 
@@ -23,6 +24,7 @@ Game::~Game() {
 void Game::init() {
     setupWindow();
     setupShaders();
+    setupFont();
     setupMap();
     setupActors();
     
@@ -30,6 +32,7 @@ void Game::init() {
     
     const float CAMERA_SCALE = 1.0f / 2.0f;
     m_camera.setScale(CAMERA_SCALE);
+    //m_hudCamera.setPosition(glm::vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2));
     
     run();
 }
@@ -50,8 +53,11 @@ void Game::setupShaders() {
     m_colorProgram.addAttribute("vertexColor");
     m_colorProgram.addAttribute("vertexUV");
     m_colorProgram.linkShaders();
-    
     m_spriteBatch.init(m_colorProgram);
+}
+
+void Game::setupFont() {
+    m_spriteFont = new SpriteFont("fonts/Western Bang Bang.ttf", 32);
 }
 
 void Game::setupMap() {
@@ -131,6 +137,7 @@ void Game::run() {
                                              m_projectiles);
         //update camera
         m_camera.update();
+        m_hudCamera.update();
         
         checkCollision();
         
@@ -394,9 +401,13 @@ void Game::draw() {
         if (m_camera.isInView(m_projectiles[p].getPosition(), glm::vec2(m_projectiles[p].getWidth(), m_projectiles[p].getHeight())))
             m_projectiles[p].draw(m_spriteBatch, "images/fantasy_tileset/PNG/fantasy-tileset-00-07.png");
     }
+    
+    char buffer[256];
+    sprintf(buffer, "Num Humans %d", m_numHumans);
+    m_spriteFont->draw(m_spriteBatch, buffer, glm::vec2(300, 32), glm::vec2(4.0), 0.0f, ColorRGBA8(255, 255, 255, 255));
+    
     m_spriteBatch.end();
     m_spriteBatch.renderBatch();
-    
     m_colorProgram.unuse();
     
     m_window.swapBuffer();

@@ -18,6 +18,7 @@
 #include "Player.h"
 #include "Zombie.h"
 #include "Projectile.h"
+#include "SpriteFont.h"
 
 enum class GameState { IDLE, PLAY, EXIT };
 
@@ -37,9 +38,11 @@ private:
     float m_time;
     int m_uniformID;
     Camera2D m_camera;
+    Camera2D m_hudCamera;
     SpriteBatch m_spriteBatch;
     InputManager m_inputManager;
     FPSLimiter m_fpsLimiter;
+    SpriteFont* m_spriteFont;
     std::vector<Map*> m_maps;
     std::vector<Human*> m_humans;
     std::vector<Zombie*> m_zombies;
@@ -53,6 +56,7 @@ private:
     
     void setupWindow();
     void setupShaders();
+    void setupFont();
     void setupMap();
     void setupActors();
     void run();

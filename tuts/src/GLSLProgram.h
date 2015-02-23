@@ -21,11 +21,11 @@ public:
     GLint getAttribLocation(const std::string& attribName);
     
 private:
-    GLuint _programID;
-    GLuint _vertexShaderID;
-    GLuint _fragmentShaderID;
-    GLuint _vaoID;
-    int _numAttributes;
+    GLuint m_programID;
+    GLuint m_vertexShaderID;
+    GLuint m_fragmentShaderID;
+    GLuint m_vaoID;
+    int m_numAttributes;
     
     void compileShader(const std::string& filePath, GLuint shaderID);
     

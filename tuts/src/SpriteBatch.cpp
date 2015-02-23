@@ -6,6 +6,7 @@ SpriteBatch::SpriteBatch() : m_vbo(0), m_vao(0) {
 }
 
 SpriteBatch::~SpriteBatch() {
+    
 }
 
 void SpriteBatch::init(GLSLProgram& shaderProgram) {
