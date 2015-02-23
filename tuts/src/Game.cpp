@@ -25,6 +25,7 @@ void Game::init() {
     setupWindow();
     setupShaders();
     setupFont();
+    setupAudio();
     setupMap();
     setupActors();
     
@@ -60,6 +61,13 @@ void Game::setupFont() {
     m_spriteFont = new SpriteFont("fonts/Western Bang Bang.ttf", 32);
 }
 
+void Game::setupAudio() {
+    m_audioEngine = new AudioEngine();
+    m_audioEngine->init();
+    m_music = m_audioEngine->loadMusic("audio/XYZ.ogg");
+    m_music.play();
+}
+
 void Game::setupMap() {
     m_gameState = GameState::PLAY;
     m_maps.push_back(new Map("maps/map_1.txt"));
@@ -72,9 +80,9 @@ void Game::setupActors() {
     m_player = new Player();
     m_player->init(5.0f, m_maps[m_currentMap]->getPlayerLoc());
     m_humans.push_back(m_player);
-    m_player->addWeapon(new Weapon("Pistol", 10, 1, 0.0f, 20, 20.0f));
-    m_player->addWeapon(new Weapon("Shotgun", 30, 20, 0.4f, 5, 20.0f));
-    m_player->addWeapon(new Weapon("AR", 2, 1, 0.1f, 20, 10.0f));
+    m_player->addWeapon(new Weapon("Pistol", 10, 1, 0.0f, 20, 20.0f, m_audioEngine->loadSoundEffect("audio/shots/pistol.wav")));
+    m_player->addWeapon(new Weapon("Shotgun", 30, 20, 0.4f, 5, 20.0f, m_audioEngine->loadSoundEffect("audio/shots/shotgun.wav")));
+    m_player->addWeapon(new Weapon("AR", 2, 1, 0.1f, 20, 10.0f, m_audioEngine->loadSoundEffect("audio/shots/cg1.wav")));
     
     //zombies
     std::vector<glm::vec2> zombieLocs = m_maps[m_currentMap]->getZombieLocs();

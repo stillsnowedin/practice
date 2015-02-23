@@ -19,6 +19,7 @@
 #include "Zombie.h"
 #include "Projectile.h"
 #include "SpriteFont.h"
+#include "AudioEngine.h"
 
 enum class GameState { IDLE, PLAY, EXIT };
 
@@ -43,6 +44,8 @@ private:
     InputManager m_inputManager;
     FPSLimiter m_fpsLimiter;
     SpriteFont* m_spriteFont;
+    AudioEngine* m_audioEngine;
+    Music m_music;
     std::vector<Map*> m_maps;
     std::vector<Human*> m_humans;
     std::vector<Zombie*> m_zombies;
@@ -57,6 +60,7 @@ private:
     void setupWindow();
     void setupShaders();
     void setupFont();
+    void setupAudio();
     void setupMap();
     void setupActors();
     void run();
